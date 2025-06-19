@@ -1,0 +1,17 @@
+{
+  "name": "reproductorlocal",
+  "version": "0.1.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^36.5.0",
+    "music-metadata": "^11.3.0"
+  }
+}

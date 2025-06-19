@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Reproductor MP4</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Reproductor de Videos</h1>
+  <button id="boton-carpeta">Seleccionar Carpeta</button>
+
+  <input type="text" id="busqueda" placeholder="Buscar video por nombre...">
+  <div class="filtros">
+  <label>Género:
+    <select id="filtro-genero">
+      <option value="">Todos</option>
+    </select>
+  </label>
+
+  <label>Artista:
+    <select id="filtro-artista">
+      <option value="">Todos</option>
+    </select>
+  </label>
+
+  <label>Año:
+    <select id="filtro-año">
+      <option value="">Todos</option>
+    </select>
+  </label>
+</div>
+
+
+  <div id="grid-videos" class="grid"></div>
+
+<div id="contenedor-player" style="display: none;">
+  <video id="player" width="640" controls></video>
+</div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
