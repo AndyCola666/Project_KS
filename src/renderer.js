@@ -6,15 +6,30 @@ const inputBusqueda = document.getElementById('busqueda');
 const filtroGenero = document.getElementById('filtro-genero');
 const filtroArtista = document.getElementById('filtro-artista');
 const filtroAño = document.getElementById('filtro-año');
+const btnActualizar = document.getElementById('boton-actualizar');
+
 
 let videosOriginales = [];
+let carpetaSeleccionada = null;
 
 btn.addEventListener('click', async () => {
-  const resultados = await window.api.seleccionarCarpeta();
+  const resultado = await window.api.seleccionarCarpeta();
+  if (resultado && resultado.videos) {
+    videosOriginales = resultado.videos;
+    carpetaSeleccionada = resultado.ruta;
+    construirFiltros(videosOriginales);
+    mostrarVideos(videosOriginales);
+  }
+});
+
+btnActualizar.addEventListener('click', async () => {
+  if (!carpetaSeleccionada) return;
+  const resultados = await window.api.actualizarBase(carpetaSeleccionada);
   videosOriginales = resultados;
   construirFiltros(videosOriginales);
   mostrarVideos(videosOriginales);
 });
+
 
 inputBusqueda.addEventListener('input', aplicarFiltros);
 filtroGenero.addEventListener('change', aplicarFiltros);
@@ -77,7 +92,9 @@ function mostrarVideos(videos) {
     img.alt = video.titulo;
 
     const titulo = document.createElement('h3');
-    titulo.textContent = video.titulo;
+    // Quitar la extensión del título si existe
+    let tituloSinExtension = video.titulo.replace(/\.[^/.]+$/, "");
+    titulo.textContent = tituloSinExtension;
 
     const artista = document.createElement('p');
     artista.textContent = `Artista: ${video.artista || 'Desconocido'}`;

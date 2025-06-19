@@ -33,15 +33,80 @@ db.exec(`
   );
 `);
 
-app.whenReady().then(() => {
-  globalShortcut.register('CommandOrControl+Shift+I', () => {
-    const focusedWindow = BrowserWindow.getFocusedWindow();
-    if (focusedWindow) focusedWindow.webContents.toggleDevTools();
-  });
+// 🔁 Escaneo recursivo
+function obtenerArchivosRecursivos(carpeta, extensiones = ['.mp4', '.mkv', '.avi', '.mov']) {
+  let archivos = [];
+  const items = fs.readdirSync(carpeta, { withFileTypes: true });
+  for (const item of items) {
+    const rutaCompleta = path.join(carpeta, item.name);
+    if (item.isDirectory()) {
+      archivos = archivos.concat(obtenerArchivosRecursivos(rutaCompleta, extensiones));
+    } else if (item.isFile() && extensiones.includes(path.extname(item.name).toLowerCase())) {
+      archivos.push(rutaCompleta);
+    }
+  }
+  return archivos;
+}
 
-  createWindow();
-});
+// 🧠 Escanear y actualizar base de datos
+async function escanearCarpeta(carpeta) {
+  const videos = obtenerArchivosRecursivos(carpeta);
 
+  for (const ruta of videos) {
+    try {
+      const metadata = await mm.parseFile(ruta);
+      const common = metadata.common;
+
+      // Maneja artista
+      let artistaId = null;
+      if (common.artist) {
+        let artista = db.prepare('SELECT id FROM artistas WHERE nombre = ?').get(common.artist);
+        if (!artista) {
+          const info = db.prepare('INSERT INTO artistas (nombre) VALUES (?)').run(common.artist);
+          artistaId = info.lastInsertRowid;
+        } else {
+          artistaId = artista.id;
+        }
+      }
+
+      // Inserta o actualiza video
+      db.prepare(`
+        INSERT INTO videos (ruta, titulo, artista_id, album, genero, año)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(ruta) DO UPDATE SET
+          titulo=excluded.titulo,
+          artista_id=excluded.artista_id,
+          album=excluded.album,
+          genero=excluded.genero,
+          año=excluded.año
+      `).run(
+        ruta,
+        common.title || path.basename(ruta),
+        artistaId,
+        common.album || '',
+        common.genre ? common.genre[0] : '',
+        common.year ? String(common.year) : ''
+      );
+    } catch (err) {
+      // Si no hay metadatos, al menos inserta el archivo
+      db.prepare(`
+        INSERT INTO videos (ruta, titulo)
+        VALUES (?, ?)
+        ON CONFLICT(ruta) DO NOTHING
+      `).run(ruta, path.basename(ruta));
+    }
+  }
+
+  // Devuelve todos los videos con artista
+  const getVideosConArtista = db.prepare(`
+    SELECT v.*, a.nombre AS artista
+    FROM videos v
+    LEFT JOIN artistas a ON v.artista_id = a.id
+  `);
+  return getVideosConArtista.all();
+}
+
+// 🪟 Crear ventana principal
 function createWindow() {
   const win = new BrowserWindow({
     width: 900,
@@ -54,57 +119,36 @@ function createWindow() {
   win.loadFile(path.join(__dirname, 'src', 'index.html'));
 }
 
-// 📁 Selección de carpeta y escaneo
-ipcMain.handle('seleccionar-carpeta', async () => {
-  const resultado = await dialog.showOpenDialog({
-    properties: ['openDirectory']
+// 🧠 Ctrl+Shift+I para DevTools
+app.whenReady().then(() => {
+  globalShortcut.register('CommandOrControl+Shift+I', () => {
+    const focusedWindow = BrowserWindow.getFocusedWindow();
+    if (focusedWindow) focusedWindow.webContents.toggleDevTools();
   });
 
-  if (resultado.canceled || resultado.filePaths.length === 0) return [];
+  createWindow();
+});
 
-  const carpeta = resultado.filePaths[0];
-  const archivos = fs.readdirSync(carpeta);
-  const videos = archivos.filter(archivo => archivo.endsWith('.mp4'));
+// 🧭 Canal para seleccionar carpeta
+ipcMain.handle('seleccionar-carpeta', async () => {
+  const resultado = await dialog.showOpenDialog({ properties: ['openDirectory'] });
+  if (resultado.canceled || resultado.filePaths.length === 0) return { ruta: null, videos: [] };
+  const rutaCarpeta = resultado.filePaths[0];
+  const videos = await escanearCarpeta(rutaCarpeta);
+  return { ruta: rutaCarpeta, videos };
+});
 
+// 🔁 Canal para actualizar (desde botón en renderer)
+ipcMain.handle('actualizar-base', async (_, rutaCarpeta) => {
+  if (!rutaCarpeta || !fs.existsSync(rutaCarpeta)) return [];
+  return await escanearCarpeta(rutaCarpeta);
+});
+
+function limpiarVideosNoExistentes() {
+  const videos = db.prepare('SELECT ruta FROM videos').all();
   for (const video of videos) {
-    const ruta = path.join(carpeta, video);
-    try {
-      const metadata = await mm.parseFile(ruta);
-      const common = metadata.common;
-
-      const titulo = common.title || path.parse(video).name;
-      const artista = common.artist || 'Desconocido';
-      const album = common.album || '';
-      const genero = (common.genre && common.genre[0]) || '';
-      const año = common.year?.toString() || '';
-
-      // Insertar artista
-      const insertArtista = db.prepare(`INSERT OR IGNORE INTO artistas (nombre) VALUES (?)`);
-      insertArtista.run(artista);
-
-      // Obtener ID del artista
-      const getArtista = db.prepare(`SELECT id FROM artistas WHERE nombre = ?`);
-      const { id: artista_id } = getArtista.get(artista);
-
-      // Insertar video
-      const insertVideo = db.prepare(`
-        INSERT OR REPLACE INTO videos (ruta, titulo, artista_id, album, genero, año)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `);
-      insertVideo.run(ruta, titulo, artista_id, album, genero, año);
-    } catch (err) {
-      console.error('Error leyendo metadatos de:', ruta);
+    if (!fs.existsSync(video.ruta)) {
+      db.prepare('DELETE FROM videos WHERE ruta = ?').run(video.ruta);
     }
   }
-
-  // 🔍 Recuperar resultados para el renderer
-  const getVideosConArtista = db.prepare(`
-    SELECT v.*, a.nombre AS artista
-    FROM videos v
-    JOIN artistas a ON v.artista_id = a.id
-  `);
-
-  const resultados = getVideosConArtista.all();
-  console.log('📦 Videos desde la base de datos:', resultados);
-  return resultados;
-});
+}
