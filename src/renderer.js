@@ -1,6 +1,7 @@
+// renderer.js actualizado
 const btn = document.getElementById('boton-carpeta');
 const grid = document.getElementById('grid-videos');
-const player = document.getElementById('player'); //El mismo que cont-player?
+const player = document.getElementById('player');
 const contenedorPlayer = document.getElementById('contenedor-player');
 const inputBusqueda = document.getElementById('busqueda');
 const filtroGenero = document.getElementById('filtro-genero');
@@ -8,11 +9,10 @@ const filtroArtista = document.getElementById('filtro-artista');
 const filtroAño = document.getElementById('filtro-año');
 const btnActualizar = document.getElementById('boton-actualizar');
 
-
 let videosOriginales = [];
 let carpetaSeleccionada = null;
 
-btn.addEventListener('click', async () => {
+document.getElementById('boton-carpeta').addEventListener('click', async () => {
   const resultado = await window.api.seleccionarCarpeta();
   if (resultado && resultado.videos) {
     videosOriginales = resultado.videos;
@@ -29,7 +29,6 @@ btnActualizar.addEventListener('click', async () => {
   construirFiltros(videosOriginales);
   mostrarVideos(videosOriginales);
 });
-
 
 inputBusqueda.addEventListener('input', aplicarFiltros);
 filtroGenero.addEventListener('change', aplicarFiltros);
@@ -73,7 +72,6 @@ function aplicarFiltros() {
     const coincideGenero = !generoSel || video.genero === generoSel;
     const coincideArtista = !artistaSel || video.artista === artistaSel;
     const coincideAño = !añoSel || video.año === añoSel;
-
     return coincideTexto && coincideGenero && coincideArtista && coincideAño;
   });
 
@@ -88,12 +86,11 @@ function mostrarVideos(videos) {
     card.classList.add('card');
 
     const img = document.createElement('img');
-    img.src = "https://via.placeholder.com/300x170/000000/ffffff?text=Video";
+    img.src = video.imagen ? `file://${video.imagen}` : 'https://via.placeholder.com/300x170/000000/ffffff?text=Video';
     img.alt = video.titulo;
 
     const titulo = document.createElement('h3');
-    // Quitar la extensión del título si existe
-    let tituloSinExtension = video.titulo.replace(/\.[^/.]+$/, "");
+    const tituloSinExtension = video.titulo.replace(/\.[^/.]+$/, "");
     titulo.textContent = tituloSinExtension;
 
     const artista = document.createElement('p');
@@ -122,3 +119,9 @@ function mostrarVideos(videos) {
     grid.appendChild(card);
   });
 }
+
+document.getElementById('icon-buscar').addEventListener('click', () => {
+  const searchFilters = document.getElementById('search-filters');
+  searchFilters.style.display = 'flex';
+  document.getElementById('busqueda').focus();
+});

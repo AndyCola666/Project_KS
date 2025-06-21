@@ -4,41 +4,60 @@
   <meta charset="UTF-8">
   <title>Karaoke</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Puedes usar iconos de https://fonts.google.com/icons o FontAwesome -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 </head>
 <body>
-  <h1>Karaoke</h1>
-  <button id="boton-carpeta">Seleccionar Carpeta</button>
+  <!-- Banner superior fijo -->
+  <header class="banner">
+    <h1>Karaoke</h1>
+  </header>
 
-  <input type="text" id="busqueda" placeholder="Buscar video por nombre...">
-  <div class="filtros">
-  <label>Género:
-    <select id="filtro-genero">
-      <option value="">Todos</option>
-    </select>
-  </label>
+  <!-- Barra lateral izquierda -->
+  <nav class="sidebar">
+    <ul>
+      <li class="sidebar-icon active" id="icon-buscar" title="Buscar">
+        <span class="material-icons">search</span>
+      </li>
+      <li class="sidebar-icon" title="Placeholder 1">
+        <span class="material-icons">star</span>
+      </li>
+      <li class="sidebar-icon" title="Placeholder 2">
+        <span class="material-icons">settings</span>
+      </li>
+    </ul>
+  </nav>
 
-  <label>Artista:
-    <select id="filtro-artista">
-      <option value="">Todos</option>
-    </select>
-  </label>
+  <!-- Contenido principal -->
+  <main class="main-content">
+    <!-- Barra de búsqueda y filtros (aparecen arriba del grid) -->
+    <div class="search-filters" id="search-filters" style="display: none;">
+      <button id="boton-carpeta" title="Seleccionar carpeta de videos">
+        <span class="material-icons">folder_open</span>
+      </button>
+      <input type="text" id="busqueda" placeholder="Buscar video por nombre...">
+      <select id="filtro-genero">
+        <option value="">Género</option>
+      </select>
+      <select id="filtro-artista">
+        <option value="">Artista</option>
+      </select>
+      <select id="filtro-año">
+        <option value="">Año</option>
+      </select>
+      <button id="boton-actualizar" title="Actualizar base de datos">
+        <span class="material-icons">refresh</span>
+      </button>
+    </div>
 
-  <label>Año:
-    <select id="filtro-año">
-      <option value="">Todos</option>
-    </select>
-  </label>
-</div>
+    <!-- Grid de videos -->
+    <div id="grid-videos" class="grid"></div>
+  </main>
 
-
-  <div id="grid-videos" class="grid"></div>
-  
-  <button id="boton-actualizar">Actualizar base de datos</button>
-
-
-<div id="contenedor-player" style="display: none;">
-  <video id="player" width="640" controls></video>
-</div>
+  <!-- Player -->
+  <div id="contenedor-player" style="display: none;">
+    <video id="player" width="640" controls></video>
+  </div>
 
   <script src="renderer.js"></script>
 </body>
