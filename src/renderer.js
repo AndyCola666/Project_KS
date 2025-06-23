@@ -1,18 +1,25 @@
-// renderer.js actualizado
+// renderer.js actualizado con vista de video y recomendados
 const btn = document.getElementById('boton-carpeta');
 const grid = document.getElementById('grid-videos');
 const player = document.getElementById('player');
 const contenedorPlayer = document.getElementById('contenedor-player');
 const inputBusqueda = document.getElementById('busqueda');
-const filtroGenero = document.getElementById('filtro-genero');
-const filtroArtista = document.getElementById('filtro-artista');
-const filtroAño = document.getElementById('filtro-año');
+const filtrosBarra = document.getElementById('filtros-barra');
+const filtrosBloque = document.getElementById('filtros-bloque');
+const filtrosGenero = document.getElementById('filtros-genero');
+const filtrosArtista = document.getElementById('filtros-artista');
+const filtrosAño = document.getElementById('filtros-año');
+const iconRegresarSidebar = document.getElementById('icon-regresar-sidebar');
+const btnToggleFiltros = document.getElementById('boton-toggle-filtros');
 const btnActualizar = document.getElementById('boton-actualizar');
+const seccionReproductor = document.getElementById('vista-reproductor');
+const recomendadosGrid = document.getElementById('grid-recomendados');
+const btnRegresar = document.getElementById('btn-regresar');
 
 let videosOriginales = [];
 let carpetaSeleccionada = null;
 
-document.getElementById('boton-carpeta').addEventListener('click', async () => {
+btn.addEventListener('click', async () => {
   const resultado = await window.api.seleccionarCarpeta();
   if (resultado && resultado.videos) {
     videosOriginales = resultado.videos;
@@ -30,10 +37,10 @@ btnActualizar.addEventListener('click', async () => {
   mostrarVideos(videosOriginales);
 });
 
-inputBusqueda.addEventListener('input', aplicarFiltros);
-filtroGenero.addEventListener('change', aplicarFiltros);
-filtroArtista.addEventListener('change', aplicarFiltros);
-filtroAño.addEventListener('change', aplicarFiltros);
+btnToggleFiltros.addEventListener('click', () => {
+  const visible = filtrosBloque.style.display === 'flex';
+  filtrosBloque.style.display = visible ? 'none' : 'flex';
+});
 
 function construirFiltros(videos) {
   const generos = new Set();
@@ -46,9 +53,9 @@ function construirFiltros(videos) {
     if (video.año) años.add(video.año);
   });
 
-  poblarSelect(filtroGenero, generos);
-  poblarSelect(filtroArtista, artistas);
-  poblarSelect(filtroAño, años);
+  poblarSelect(filtrosGenero, generos);
+  poblarSelect(filtrosArtista, artistas);
+  poblarSelect(filtrosAño, años);
 }
 
 function poblarSelect(select, valores) {
@@ -63,9 +70,9 @@ function poblarSelect(select, valores) {
 
 function aplicarFiltros() {
   const texto = inputBusqueda.value.toLowerCase();
-  const generoSel = filtroGenero.value;
-  const artistaSel = filtroArtista.value;
-  const añoSel = filtroAño.value;
+  const generoSel = filtrosGenero.value;
+  const artistaSel = filtrosArtista.value;
+  const añoSel = filtrosAño.value;
 
   const filtrados = videosOriginales.filter(video => {
     const coincideTexto = video.titulo.toLowerCase().includes(texto);
@@ -78,8 +85,15 @@ function aplicarFiltros() {
   mostrarVideos(filtrados);
 }
 
+inputBusqueda.addEventListener('input', aplicarFiltros);
+filtrosGenero.addEventListener('change', aplicarFiltros);
+filtrosArtista.addEventListener('change', aplicarFiltros);
+filtrosAño.addEventListener('change', aplicarFiltros);
+
 function mostrarVideos(videos) {
   grid.innerHTML = '';
+  seccionReproductor.style.display = 'none';
+  grid.style.display = 'grid';
 
   videos.forEach(video => {
     const card = document.createElement('div');
@@ -108,20 +122,84 @@ function mostrarVideos(videos) {
     card.appendChild(album);
     card.appendChild(genero);
 
-    card.onclick = () => {
-      player.src = video.ruta;
-      contenedorPlayer.style.display = 'block';
-      player.scrollIntoView({ behavior: 'smooth' });
-      player.load();
-      player.play();
-    };
+    card.onclick = () => mostrarVistaReproductor(video);
 
     grid.appendChild(card);
   });
 }
 
-document.getElementById('icon-buscar').addEventListener('click', () => {
-  const searchFilters = document.getElementById('search-filters');
-  searchFilters.style.display = 'flex';
-  document.getElementById('busqueda').focus();
+function mostrarVistaReproductor(video) {
+  seccionReproductor.style.display = 'block';
+  grid.style.display = 'none';
+  player.src = video.ruta;
+  player.load();
+  player.play();
+  llenarRecomendados(video);
+  if (iconRegresarSidebar) iconRegresarSidebar.style.display = 'block';
+  if (iconBuscar) iconBuscar.style.display = 'none';
+}
+
+btnRegresar.addEventListener('click', () => {
+  seccionReproductor.style.display = 'none';
+  grid.style.display = 'grid';
+  player.pause();
+  player.src = '';
+
+  // Restaurar íconos del sidebar
+  if (iconRegresarSidebar) iconRegresarSidebar.style.display = 'none';
+  if (iconBuscar) iconBuscar.style.display = 'block';
+});
+
+iconRegresarSidebar.addEventListener('click', () => {
+  btnRegresar.click(); // Dispara el mismo efecto del botón principal
+});
+
+function llenarRecomendados(videoBase) {
+  recomendadosGrid.innerHTML = '';
+  const similares = videosOriginales.filter(v => {
+    return (
+      v.ruta !== videoBase.ruta &&
+      (v.artista === videoBase.artista ||
+       v.genero === videoBase.genero ||
+       v.album === videoBase.album)
+    );
+  }).slice(0, 10);
+
+  similares.forEach(video => {
+    const card = document.createElement('div');
+    card.classList.add('card');
+
+    const img = document.createElement('img');
+    img.src = video.imagen ? `file://${video.imagen}` : 'https://via.placeholder.com/300x170/000000/ffffff?text=Video';
+    img.alt = video.titulo;
+
+    const titulo = document.createElement('h3');
+    titulo.textContent = video.titulo.replace(/\.[^/.]+$/, "");
+
+    card.appendChild(img);
+    card.appendChild(titulo);
+
+    card.onclick = () => mostrarVistaReproductor(video);
+
+    recomendadosGrid.appendChild(card);
+  });
+}
+
+const iconBuscar = document.getElementById('icon-buscar');
+// Cambia searchFilters a filtrosBarra para que funcione con el nuevo id
+
+iconBuscar.addEventListener('click', () => {
+  const estaVisible = filtrosBarra.style.display === 'flex';
+  filtrosBarra.style.display = estaVisible ? 'none' : 'flex';
+  if (!estaVisible) {
+    inputBusqueda.focus();
+  }
+});
+
+const sidebar = document.querySelector('.sidebar');
+sidebar.addEventListener('mouseenter', () => {
+  document.body.classList.add('sidebar-expanded');
+});
+sidebar.addEventListener('mouseleave', () => {
+  document.body.classList.remove('sidebar-expanded');
 });

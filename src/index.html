@@ -14,44 +14,88 @@
   </header>
 
   <!-- Barra lateral izquierda -->
-  <nav class="sidebar">
-    <ul>
-      <li class="sidebar-icon active" id="icon-buscar" title="Buscar">
-        <span class="material-icons">search</span>
-      </li>
-      <li class="sidebar-icon" title="Placeholder 1">
-        <span class="material-icons">star</span>
-      </li>
-      <li class="sidebar-icon" title="Placeholder 2">
-        <span class="material-icons">settings</span>
-      </li>
-    </ul>
-  </nav>
+<nav class="sidebar">
+<ul class="top-icons">
+  <li class="sidebar-icon" id="icon-buscar" title="Buscar">
+  <span class="material-icons">search</span>
+</li>
+  <li class="sidebar-icon" id="icon-regresar-sidebar" title="Regresar al grid" style="display: none;">
+    <span class="material-icons">arrow_back</span>
+  </li>
+  <li class="sidebar-icon" id="icon-star" title="Placeholder 1">
+    <span class="material-icons">star</span>
+  </li>
+  <li class="sidebar-icon" id="icon-settings" title="Placeholder 2">
+    <span class="material-icons">settings</span>
+  </li>
+</ul>
+  <ul class="bottom-icons">
+    <li class="sidebar-icon" title="Placeholder 3">
+      <span class="material-icons">help</span>
+    </li>
+    <li class="sidebar-icon" title="Placeholder 4">
+      <span class="material-icons">exit_to_app</span>
+    </li>
+  </ul>
+</nav>
+
 
   <!-- Contenido principal -->
-  <main class="main-content">
+<main class="main-content">
     <!-- Barra de búsqueda y filtros (aparecen arriba del grid) -->
-    <div class="search-filters" id="search-filters" style="display: none;">
-      <button id="boton-carpeta" title="Seleccionar carpeta de videos">
-        <span class="material-icons">folder_open</span>
-      </button>
-      <input type="text" id="busqueda" placeholder="Buscar video por nombre...">
-      <select id="filtro-genero">
-        <option value="">Género</option>
+<div class="filtros-barra" id="filtros-barra" style="display: none;">
+  <button id="boton-carpeta" title="Seleccionar carpeta de videos">
+    <span class="material-icons">folder_open</span>
+  </button>
+  <input type="text" id="busqueda" placeholder="Buscar video por nombre...">
+
+  <button id="boton-toggle-filtros" title="Mostrar filtros">
+    <span class="material-icons">tune</span> Filtros
+  </button>
+
+  <div class="filtros-bloque" id="filtros-bloque" style="display: none;">
+    <div class="filtros-grupo">
+      <label for="filtros-genero">Género</label>
+      <select id="filtros-genero">
+        <option value="">Todos</option>
       </select>
-      <select id="filtro-artista">
-        <option value="">Artista</option>
-      </select>
-      <select id="filtro-año">
-        <option value="">Año</option>
-      </select>
-      <button id="boton-actualizar" title="Actualizar base de datos">
-        <span class="material-icons">refresh</span>
-      </button>
     </div>
+
+    <div class="filtros-grupo">
+      <label for="filtros-artista">Artista</label>
+      <select id="filtros-artista">
+        <option value="">Todos</option>
+      </select>
+    </div>
+
+    <div class="filtros-grupo">
+      <label for="filtros-año">Año</label>
+      <select id="filtros-año">
+        <option value="">Todos</option>
+      </select>
+    </div>
+  </div>
+
+  <button id="boton-actualizar" title="Actualizar base de datos">
+    <span class="material-icons">refresh</span>
+  </button>
+</div>
 
     <!-- Grid de videos -->
     <div id="grid-videos" class="grid"></div>
+    <!-- Vista de reproducción de un solo video -->
+<div id="vista-reproductor" style="display: none;">
+  <button id="btn-regresar" title="Volver al grid">
+    <span class="material-icons">arrow_back</span> Regresar
+  </button>
+
+  <div id="video-principal">
+    <video id="player" width="100%" controls></video>
+  </div>
+
+  <h2 style="margin-top: 20px;">Recomendados</h2>
+  <div id="grid-recomendados" class="grid"></div>
+</div>
   </main>
 
   <!-- Player -->
