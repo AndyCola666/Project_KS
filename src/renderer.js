@@ -1,4 +1,4 @@
-// renderer.js actualizado con vista de video y recomendados
+// renderer.js actualizado con vista de video, recomendados y sistema de fila
 const btn = document.getElementById('boton-carpeta');
 const grid = document.getElementById('grid-videos');
 const player = document.getElementById('player');
@@ -14,10 +14,21 @@ const btnToggleFiltros = document.getElementById('boton-toggle-filtros');
 const btnActualizar = document.getElementById('boton-actualizar');
 const seccionReproductor = document.getElementById('vista-reproductor');
 const recomendadosGrid = document.getElementById('grid-recomendados');
-const btnRegresar = document.getElementById('btn-regresar');
+const iconBuscar = document.getElementById('icon-buscar');
+const iconFila = document.getElementById('icon-fila');
+const vistaFila = document.getElementById('vista-fila');
+const listaFila = document.getElementById('lista-fila');
+const btnReproducirFila = document.getElementById('btn-reproducir-fila');
+const btnCerrarFila = document.getElementById('btn-cerrar-fila');
+const miniPlayer = document.getElementById('mini-player');
+const miniVideo = document.getElementById('mini-video');
+const btnCerrarMini = document.getElementById('btn-cerrar-mini');
+
 
 let videosOriginales = [];
 let carpetaSeleccionada = null;
+let filaReproduccion = [];
+let indexActualFila = 0;
 
 btn.addEventListener('click', async () => {
   const resultado = await window.api.seleccionarCarpeta();
@@ -104,7 +115,7 @@ function mostrarVideos(videos) {
     img.alt = video.titulo;
 
     const titulo = document.createElement('h3');
-    const tituloSinExtension = video.titulo.replace(/\.[^/.]+$/, "");
+    const tituloSinExtension = video.titulo.replace(/\\.[^/.]+$/, "");
     titulo.textContent = tituloSinExtension;
 
     const artista = document.createElement('p');
@@ -123,6 +134,10 @@ function mostrarVideos(videos) {
     card.appendChild(genero);
 
     card.onclick = () => mostrarVistaReproductor(video);
+    card.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      mostrarMenuContextual(e.pageX, e.pageY, video);
+    });
 
     grid.appendChild(card);
   });
@@ -135,23 +150,26 @@ function mostrarVistaReproductor(video) {
   player.load();
   player.play();
   llenarRecomendados(video);
-  if (iconRegresarSidebar) iconRegresarSidebar.style.display = 'block';
+
+  filtrosBarra.style.display = 'none';
   if (iconBuscar) iconBuscar.style.display = 'none';
+  if (iconRegresarSidebar) iconRegresarSidebar.style.display = 'block';
+
+  const placeholder2 = document.getElementById('icon-concurso');
+  if (placeholder2) placeholder2.style.display = 'none';
 }
 
-btnRegresar.addEventListener('click', () => {
-  seccionReproductor.style.display = 'none';
-  grid.style.display = 'grid';
+iconRegresarSidebar.addEventListener('click', () => {
+  if (!player.src) return;
+
+  const videoActual = filaReproduccion.length > 0 ? filaReproduccion[indexActualFila] : null;
+  // Si está en fila, usar esa canción, si no usar video del reproductor
+  const videoParaMini = videoActual || { ruta: player.src };
+
+  activarMiniPlayer(videoParaMini);
+
   player.pause();
   player.src = '';
-
-  // Restaurar íconos del sidebar
-  if (iconRegresarSidebar) iconRegresarSidebar.style.display = 'none';
-  if (iconBuscar) iconBuscar.style.display = 'block';
-});
-
-iconRegresarSidebar.addEventListener('click', () => {
-  btnRegresar.click(); // Dispara el mismo efecto del botón principal
 });
 
 function llenarRecomendados(videoBase) {
@@ -174,19 +192,20 @@ function llenarRecomendados(videoBase) {
     img.alt = video.titulo;
 
     const titulo = document.createElement('h3');
-    titulo.textContent = video.titulo.replace(/\.[^/.]+$/, "");
+    titulo.textContent = video.titulo.replace(/\\.[^/.]+$/, "");
 
     card.appendChild(img);
     card.appendChild(titulo);
 
     card.onclick = () => mostrarVistaReproductor(video);
+    card.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      mostrarMenuContextual(e.pageX, e.pageY, video);
+    });
 
     recomendadosGrid.appendChild(card);
   });
 }
-
-const iconBuscar = document.getElementById('icon-buscar');
-// Cambia searchFilters a filtrosBarra para que funcione con el nuevo id
 
 iconBuscar.addEventListener('click', () => {
   const estaVisible = filtrosBarra.style.display === 'flex';
@@ -203,3 +222,153 @@ sidebar.addEventListener('mouseenter', () => {
 sidebar.addEventListener('mouseleave', () => {
   document.body.classList.remove('sidebar-expanded');
 });
+
+// Menú contextual
+const menuContextual = document.createElement('div');
+menuContextual.id = 'menu-contextual';
+menuContextual.style.position = 'absolute';
+menuContextual.style.background = '#222';
+menuContextual.style.padding = '10px';
+menuContextual.style.borderRadius = '6px';
+menuContextual.style.display = 'none';
+menuContextual.style.zIndex = 9999;
+document.body.appendChild(menuContextual);
+
+function mostrarMenuContextual(x, y, video) {
+  menuContextual.innerHTML = '';
+
+  const opcionAgregar = document.createElement('div');
+  opcionAgregar.textContent = 'Agregar canción a la fila';
+  opcionAgregar.style.cursor = 'pointer';
+  opcionAgregar.style.color = '#fff';
+  opcionAgregar.onclick = () => {
+    filaReproduccion.push(video);
+    alert('Canción agregada a la fila.');
+    menuContextual.style.display = 'none';
+  };
+
+  menuContextual.appendChild(opcionAgregar);
+  menuContextual.style.left = `${x}px`;
+  menuContextual.style.top = `${y}px`;
+  menuContextual.style.display = 'block';
+}
+
+document.addEventListener('click', () => {
+  menuContextual.style.display = 'none';
+});
+
+iconFila.addEventListener('click', () => {
+  if (filaReproduccion.length === 0) {
+    alert('No hay canciones en la fila');
+    return;
+  }
+  mostrarVistaFila();
+});
+
+function activarMiniPlayer(video) {
+  // Si ya está mostrando el mismo video y no está oculto, no reiniciar
+  if (miniPlayer.style.display === 'block' && miniVideo.src === video.ruta) {
+    miniPlayer.style.display = 'block';
+    miniVideo.play();
+    return;
+  }
+  miniPlayer.style.display = 'block';
+  if (miniVideo.src !== video.ruta) {
+    miniVideo.src = video.ruta;
+    miniVideo.load();
+  }
+  miniVideo.play();
+  // Ocultar reproductor principal y grid
+  seccionReproductor.style.display = 'none';
+  grid.style.display = 'grid';
+  if (iconRegresarSidebar) iconRegresarSidebar.style.display = 'none';
+  if (iconBuscar) iconBuscar.style.display = 'block';
+}
+
+btnCerrarMini.addEventListener('click', (e) => {
+  e.stopPropagation();
+  miniPlayer.style.display = 'none';
+  miniVideo.pause();
+});
+
+function reproducirDesdeFila(indice) {
+  if (indice >= filaReproduccion.length) return;
+  const video = filaReproduccion[indice];
+  mostrarVistaReproductor(video);
+player.onended = () => {
+  // Eliminar la canción que acaba de terminar
+  filaReproduccion.shift(); // elimina el primer elemento (la que se reprodujo)
+  
+  if (filaReproduccion.length === 0) {
+    // Fin de fila: parar reproducción y volver al grid
+    player.pause();
+    player.src = '';
+    seccionReproductor.style.display = 'none';
+    grid.style.display = 'grid';
+
+    if (iconRegresarSidebar) iconRegresarSidebar.style.display = 'none';
+    if (iconBuscar) iconBuscar.style.display = 'block';
+
+    const placeholder2 = document.getElementById('icon-concurso');
+    if (placeholder2) placeholder2.style.display = 'block';
+
+    alert('La fila ha terminado.');
+    return;
+  }
+
+  // Reproducir siguiente video en la fila
+  reproducirDesdeFila(0); // siempre 0 porque shift mueve la fila
+};
+
+iconFila.addEventListener('click', () => {
+  if (filaReproduccion.length === 0) {
+    alert('No hay canciones en la fila');
+    return;
+  }
+  mostrarVistaFila();
+});
+
+btnReproducirFila.addEventListener('click', () => {
+  vistaFila.style.display = 'none';
+  indexActualFila = 0;
+  reproducirDesdeFila(indexActualFila);
+});
+
+btnCerrarFila.addEventListener('click', () => {
+  vistaFila.style.display = 'none';
+  grid.style.display = 'grid';
+});
+
+function mostrarVistaFila() {
+  // Oculta otras vistas
+  grid.style.display = 'none';
+  seccionReproductor.style.display = 'none';
+
+  // Limpiar y mostrar lista actual
+  listaFila.innerHTML = '';
+  filaReproduccion.forEach((video, i) => {
+    const li = document.createElement('li');
+    li.style.borderBottom = '1px solid #444';
+    li.style.padding = '10px 0';
+
+    li.innerHTML = `
+      <strong>${video.titulo.replace(/\.[^/.]+$/, "")}</strong><br>
+      Artista: ${video.artista || 'Desconocido'}<br>
+      Álbum: ${video.album || 'Desconocido'}<br>
+      Género: ${video.genero || 'Desconocido'}
+    `;
+
+    li.style.cursor = 'pointer';
+    li.title = 'Hacer click para reproducir esta canción';
+
+    li.addEventListener('click', () => {
+      vistaFila.style.display = 'none';
+      reproducirDesdeFila(i);
+    });
+
+    listaFila.appendChild(li);
+  });
+
+  vistaFila.style.display = 'block';
+}
+}

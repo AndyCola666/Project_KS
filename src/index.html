@@ -19,22 +19,22 @@
   <li class="sidebar-icon" id="icon-buscar" title="Buscar">
   <span class="material-icons">search</span>
 </li>
-  <li class="sidebar-icon" id="icon-regresar-sidebar" title="Regresar al grid" style="display: none;">
+  <li class="sidebar-icon" id="icon-regresar-sidebar" title="Regresar" style="display: none;">
     <span class="material-icons">arrow_back</span>
   </li>
-  <li class="sidebar-icon" id="icon-star" title="Placeholder 1">
-    <span class="material-icons">star</span>
+  <li class="sidebar-icon" id="icon-fila" title="Fila">
+    <span class="material-icons">queue_music</span>
   </li>
-  <li class="sidebar-icon" id="icon-settings" title="Placeholder 2">
-    <span class="material-icons">settings</span>
+  <li class="sidebar-icon" id="icon-concurso" title="Modo Concurso">
+    <span class="material-icons">festival</span>
   </li>
 </ul>
   <ul class="bottom-icons">
-    <li class="sidebar-icon" title="Placeholder 3">
-      <span class="material-icons">help</span>
+    <li class="sidebar-icon" id="icon-ajustes" title="Ajustes">
+      <span class="material-icons">settings</span>
     </li>
-    <li class="sidebar-icon" title="Placeholder 4">
-      <span class="material-icons">exit_to_app</span>
+    <li class="sidebar-icon" id="icon-admin "title="Cuenta administrador">
+      <span class="material-icons">account_circle</span>
     </li>
   </ul>
 </nav>
@@ -83,11 +83,17 @@
 
     <!-- Grid de videos -->
     <div id="grid-videos" class="grid"></div>
+
+    <div id="vista-fila" style="display: none; text-align: left; padding: 20px; max-height: 80vh; overflow-y: auto; background-color: #2c2c2c; border-radius: 8px;">
+  <h2>Fila de reproducción</h2>
+  <ul id="lista-fila" style="list-style: none; padding: 0;"></ul>
+  <button id="btn-reproducir-fila" style="margin-top: 20px; padding: 10px 20px; font-size: 16px; cursor: pointer;">Reproducir fila</button>
+  <button id="btn-cerrar-fila" style="margin-top: 10px; padding: 6px 12px; font-size: 14px; cursor: pointer;">Cerrar</button>
+</div>
+
     <!-- Vista de reproducción de un solo video -->
 <div id="vista-reproductor" style="display: none;">
-  <button id="btn-regresar" title="Volver al grid">
-    <span class="material-icons">arrow_back</span> Regresar
-  </button>
+
 
   <div id="video-principal">
     <video id="player" width="100%" controls></video>
@@ -102,6 +108,12 @@
   <div id="contenedor-player" style="display: none;">
     <video id="player" width="640" controls></video>
   </div>
+  
+  <div id="mini-player" style="display: none; position: fixed; bottom: 20px; right: 20px; width: 320px; height: 180px; z-index: 2000; box-shadow: 0 0 10px #000;">
+  <button id="btn-cerrar-mini" style="position: absolute; top: 4px; right: 4px; z-index: 10; background: #222; color: #fff; border: none; border-radius: 50%; width: 28px; height: 28px; font-size: 18px; cursor: pointer;">✕</button>
+  <video id="mini-video" width="100%" height="100%" controls></video>
+</div>
+
 
   <script src="renderer.js"></script>
 </body>
