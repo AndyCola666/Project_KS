@@ -4,6 +4,7 @@
 const btn = document.getElementById('boton-carpeta');
 const grid = document.getElementById('grid-videos');
 const player = document.getElementById('player');
+const tituloVideo = document.getElementById('titulo-video');
 const inputBusqueda = document.getElementById('busqueda');
 const filtrosBarra = document.getElementById('filtros-barra');
 const filtrosBloque = document.getElementById('filtros-bloque');
@@ -49,7 +50,7 @@ iconBuscar.addEventListener('click', () => {
   // Solo mostrar la barra si el grid está visible (opcional)
   if (grid.style.display === 'grid' || grid.style.display === '') {
     filtrosBarra.style.display = (filtrosBarra.style.display === 'flex') ? 'none' : 'flex';
-    inputBusqueda.focus();
+
   }
 });
 
@@ -129,8 +130,20 @@ function mostrarVideos(videos) {
     const titulo = document.createElement('h3');
     titulo.textContent = video.titulo.replace(/\.[^/.]+$/, "");
 
+    const artista = document.createElement('p');
+    artista.textContent = `Artista: ${video.artista || 'Desconocido'}`;
+
+    const album = document.createElement('p');
+    album.textContent = `Álbum: ${video.album || 'Desconocido'}`;
+
+    const genero = document.createElement('p');
+    genero.textContent = `Género: ${video.genero || 'Desconocido'}`;
+
     card.appendChild(img);
     card.appendChild(titulo);
+    card.appendChild(artista);
+    card.appendChild(album);
+    card.appendChild(genero);
 
     card.onclick = () => {
       miniPlayer.style.display = 'none';
@@ -145,6 +158,7 @@ function mostrarVideos(videos) {
       llenarRecomendados(video);
       iconBuscar.style.display = 'none';
       iconRegresarSidebar.style.display = 'block';
+      tituloVideo.textContent = video.titulo.replace(/\.[^/.]+$/, ""); // Actualiza el título del video
     };
     card.addEventListener('contextmenu', e => {
       e.preventDefault();
@@ -173,6 +187,15 @@ miniPause.addEventListener('click', (e) => {
 
 miniClose.addEventListener('click', (e) => {
   e.stopPropagation();
+  // Verifica si el video actual está en la fila
+  const indexEnFila = filaReproduccion.findIndex(v => v.ruta === videoActualRuta);
+  if (indexEnFila !== -1) {
+    const confirmacion = confirm('Esta canción está en la fila, ¿Deseas eliminarla?');
+    if (confirmacion) {
+      filaReproduccion.splice(indexEnFila, 1);
+      mostrarVistaFila(); // Opcional: actualiza la vista de la fila si está abierta
+    }
+  }
   player.pause();
   player.src = '';
   miniPlayer.style.display = 'none';
@@ -251,44 +274,81 @@ function mostrarMenuContextual(x, y, video) {
   document.body.appendChild(menu);
 
   menu.onclick = () => {
-    // Si el video ya está en la fila, no lo agregues de nuevo
-    if (filaReproduccion.some(v => v.ruta === video.ruta)) {
-      alert('Ya está en la fila.');
-      menu.remove();
-      return;
-    }
-
-    // Encuentra la posición del video actual en la fila (si está)
-    let indexActual = filaReproduccion.findIndex(v => v.ruta === videoActualRuta);
-
-    // Si el video actual NO está en la fila pero hay un video sonando, inserta después del actual
-    if (videoActualRuta && indexActual === -1 && player.src) {
-      // Si la fila está vacía, simplemente agrega el video
-      if (filaReproduccion.length === 0) {
-        filaReproduccion.push(video);
-      } else {
-        // Inserta como siguiente a reproducir
-        filaReproduccion.splice(1, 0, video);
-      }
-    } else if (indexActual !== -1) {
-      // Insertar después del video actual
-      filaReproduccion.splice(indexActual + 1, 0, video);
-    } else {
-      // Si no hay video actual, agrega al final
-      filaReproduccion.push(video);
-    }
-
-    alert('Agregado a la fila.');
+  if (filaReproduccion.some(v => v.ruta === video.ruta)) {
+    alert('Ya está en la fila.');
     menu.remove();
-  };
+    return;
+  }
+    filaReproduccion.push(video);
+
+  alert('Agregado a la fila.');
+  menu.remove();
+  mostrarVistaFila(); // Opcional: actualiza la vista de la fila si está abierta
+};
+  let indexActual = filaReproduccion.findIndex(v => v.ruta === videoActualRuta);
+
+  if (indexActual !== -1) {
+    // Insertar después del video actual
+    filaReproduccion.splice(indexActual + 1, 0, video);
+  } else {
+    // Si no hay video actual en la fila, agrega al final
+    filaReproduccion.push(video);
+  }
+
+
+};
 
   // Elimina el menú contextual si el usuario hace click fuera de él
-  document.addEventListener('click', function handler(e) {
-    if (!menu.contains(e.target)) {
-      menu.remove();
-      document.removeEventListener('click', handler);
-    }
+  document.addEventListener('click', (e) => {
+  const menu = document.getElementById('menu-contextual');
+  if (menu && !menu.contains(e.target)) {
+    menu.remove();
+  }
+});
+
+function mostrarVistaFila() {
+  listaFila.innerHTML = '';
+  filaReproduccion.forEach((video, i) => {
+    const li = document.createElement('li');
+    const tituloLimpio = video.titulo.replace(/\.[^/.]+$/, "");
+    const esActual = video.ruta === videoActualRuta;
+
+    li.innerHTML = `
+      <strong>${tituloLimpio}</strong> ${esActual ? '🎵 <em style="color: lime;">(Ahora sonando)</em>' : ''}`;
+
+    li.onclick = () => {
+  vistaFila.style.display = 'none';
+  indiceActualFila = i;
+  reproducirDesdeFila(i);
+};
+
+    li.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      const confirmacion = confirm(`¿Eliminar "${tituloLimpio}" de la fila?`);
+      if (!confirmacion) return;
+
+      if (video.ruta === videoActualRuta) {
+        player.pause();
+        player.src = '';
+        filaReproduccion.splice(i, 1);
+        if (filaReproduccion.length > 0) {
+          reproducirDesdeFila(0);
+        } else {
+          alert('No hay más canciones en la fila.');
+          vistaFila.style.display = 'none';
+          grid.style.display = 'grid';
+        }
+      } else {
+        filaReproduccion.splice(i, 1);
+      }
+
+      mostrarVistaFila(); // Recarga
+    });
+
+    listaFila.appendChild(li);
   });
+
+  vistaFila.style.display = 'block';
 }
 
 
@@ -297,41 +357,46 @@ iconFila.addEventListener('click', () => {
     alert('No hay canciones en la fila');
     return;
   }
-  // Solo muestra el menú de la fila como popup
-  vistaFila.style.display = 'block';
-  // No ocultes grid ni seccionReproductor
-  listaFila.innerHTML = '';
-  filaReproduccion.forEach((video, i) => {
-    const li = document.createElement('li');
-    li.textContent = video.titulo.replace(/\.[^/.]+$/, "");
-    li.onclick = () => {
-      vistaFila.style.display = 'none';
-      reproducirDesdeFila(i);
-    };
-    listaFila.appendChild(li);
-  });
+  mostrarVistaFila(); // Reutiliza la función modular
 });
 
 // Para cerrar el menú de la fila:
 btnCerrarFila.addEventListener('click', () => {
   vistaFila.style.display = 'none';
+  inputBusqueda.focus(); // Regresa el foco al input de búsqueda
   // No muestres el grid aquí, solo cierra el popup
 });
 
 btnReproducirFila.addEventListener('click', () => {
+  indiceActualFila = 0;
   vistaFila.style.display = 'none';
-  reproducirDesdeFila(0);
+  reproducirDesdeFila(indiceActualFila);
 });
 
-function reproducirDesdeFila(indice) {
-  if (indice >= filaReproduccion.length) return;
-  const video = filaReproduccion[indice];
+function reproducirDesdeFila(indice = 0) {
+  if (filaReproduccion.length === 0) {
+    player.pause();
+    player.src = '';
+    grid.style.display = 'grid';
+    seccionReproductor.style.display = 'none';
+    miniPlayer.style.display = 'none';
+    if (iconBuscar) iconBuscar.style.display = 'block';
+    if (iconRegresarSidebar) iconRegresarSidebar.style.display = 'none';
+    return;
+  }
+
+  // Elimina todos los videos anteriores al seleccionado
+  if (indice > 0) {
+    filaReproduccion.splice(0, indice);
+  }
+
+  const video = filaReproduccion[0];
 
   if (modoMiniPlayer) {
     miniPlayer.appendChild(player);
     miniPlayer.style.display = 'block';
     seccionReproductor.style.display = 'none';
-    grid.style.display = 'grid'; // o como prefieras
+    grid.style.display = 'grid';
   } else {
     videoPrincipal.appendChild(player);
     seccionReproductor.style.display = 'block';
@@ -342,27 +407,17 @@ function reproducirDesdeFila(indice) {
   player.src = video.ruta;
   player.play();
   videoActualRuta = video.ruta;
-
-  player.onended = () => {
-    filaReproduccion.shift();
-    if (filaReproduccion.length === 0) {
-      player.pause();
-      player.src = '';
-      if (modoMiniPlayer) {
-        miniPlayer.style.display = 'none';
-      } else {
-        grid.style.display = 'grid';
-        seccionReproductor.style.display = 'none';
-      }
-      return;
-    }
-    reproducirDesdeFila(0);
-  };
+  tituloVideo.textContent = video.titulo.replace(/\.[^/.]+$/, "");
+  iconRegresarSidebar.style.display = 'block';
+  iconBuscar.style.display = 'none';
 }
 
-// Además, cuando termina un video que NO está en la fila, revisa si hay fila:
+// Listener global:
 player.addEventListener('ended', () => {
   if (filaReproduccion.length > 0) {
-    reproducirDesdeFila(0);
+    // Elimina el primero de la fila y reproduce el siguiente
+    filaReproduccion.shift();
+    mostrarVistaFila();
+    reproducirDesdeFila();
   }
 });
