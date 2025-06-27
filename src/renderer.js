@@ -1,4 +1,3 @@
-// renderer.js limpio y corregido con sistema de fila y mini reproductor funcional
 
 // Referencias
 const btn = document.getElementById('boton-carpeta');
