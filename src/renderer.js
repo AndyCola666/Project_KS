@@ -274,29 +274,18 @@ function mostrarMenuContextual(x, y, video) {
   document.body.appendChild(menu);
 
   menu.onclick = () => {
-  if (filaReproduccion.some(v => v.ruta === video.ruta)) {
-    alert('Ya está en la fila.');
+    if (filaReproduccion.some(v => v.ruta === video.ruta)) {
+      alert('Ya está en la fila.');
+      menu.remove();
+      return;
+    }
+    // Siempre agrega al final
+    filaReproduccion.push(video);
+
+    alert('Agregado a la fila.');
     menu.remove();
-    return;
-  }
-    filaReproduccion.push(video);
-
-  alert('Agregado a la fila.');
-  menu.remove();
-  mostrarVistaFila(); // Opcional: actualiza la vista de la fila si está abierta
-};
-  let indexActual = filaReproduccion.findIndex(v => v.ruta === videoActualRuta);
-
-  if (indexActual !== -1) {
-    // Insertar después del video actual
-    filaReproduccion.splice(indexActual + 1, 0, video);
-  } else {
-    // Si no hay video actual en la fila, agrega al final
-    filaReproduccion.push(video);
-  }
-
-
-};
+  };
+}
 
   // Elimina el menú contextual si el usuario hace click fuera de él
   document.addEventListener('click', (e) => {
@@ -415,8 +404,10 @@ function reproducirDesdeFila(indice = 0) {
 // Listener global:
 player.addEventListener('ended', () => {
   if (filaReproduccion.length > 0) {
-    // Elimina el primero de la fila y reproduce el siguiente
-    filaReproduccion.shift();
+    // Solo elimina si el video actual es el primero de la fila
+    if (filaReproduccion[0].ruta === videoActualRuta) {
+      filaReproduccion.shift();
+    }
     mostrarVistaFila();
     reproducirDesdeFila();
   }
