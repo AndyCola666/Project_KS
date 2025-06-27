@@ -22,9 +22,10 @@ const vistaFila = document.getElementById('vista-fila');
 const listaFila = document.getElementById('lista-fila');
 const btnReproducirFila = document.getElementById('btn-reproducir-fila');
 const btnCerrarFila = document.getElementById('btn-cerrar-fila');
+const btnSiguienteFila = document.getElementById('btn-siguiente-fila');
 const miniPlayer = document.getElementById('mini-player');
 const miniClose = document.getElementById('mini-close');
-const miniPause = document.getElementById('mini-pause');
+const miniNext = document.getElementById('mini-next');
 const miniExpand = document.getElementById('mini-expand');
 const videoPrincipal = document.getElementById('video-principal');
 
@@ -168,6 +169,28 @@ function mostrarVideos(videos) {
     grid.appendChild(card);
   });
 }
+// Función para saltar a la siguiente canción en la fila
+function saltarASiguienteEnFila() {
+  {
+  if (filaReproduccion.length === 0) {
+    alert('No hay canciones en la fila');
+    return;
+  }
+   (filaReproduccion[0].ruta === videoActualRuta) 
+    filaReproduccion.shift();
+  }
+  reproducirDesdeFila();
+};
+
+
+btnSiguienteFila.addEventListener('click', saltarASiguienteEnFila);
+miniNext.addEventListener('click', saltarASiguienteEnFila);
+
+// Para el reproductor normal:
+btnSiguienteFila.addEventListener('click', saltarASiguienteEnFila);
+
+// Para el miniplayer:
+miniNext.addEventListener('click', saltarASiguienteEnFila);
 
 iconRegresarSidebar.addEventListener('click', () => {
   miniPlayer.appendChild(player);
@@ -177,12 +200,6 @@ iconRegresarSidebar.addEventListener('click', () => {
   grid.style.display = 'grid';
   iconRegresarSidebar.style.display = 'none';
   iconBuscar.style.display = 'block';
-});
-
-miniPause.addEventListener('click', (e) => {
-  e.stopPropagation();
-  if (player.paused) player.play();
-  else player.pause();
 });
 
 miniClose.addEventListener('click', (e) => {
@@ -304,18 +321,41 @@ function mostrarVistaFila() {
 
     li.innerHTML = `
       <strong>${tituloLimpio}</strong> ${esActual ? '🎵 <em style="color: lime;">(Ahora sonando)</em>' : ''}`;
+    li.draggable = true;
+    li.dataset.index = i;
 
+    // Drag events
+    li.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', i);
+      li.classList.add('dragging');
+    });
+    li.addEventListener('dragend', () => {
+      li.classList.remove('dragging');
+    });
+    li.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      li.classList.add('drag-over');
+    });
+    li.addEventListener('dragleave', () => {
+      li.classList.remove('drag-over');
+    });
+    li.addEventListener('drop', (e) => {
+      e.preventDefault();
+      li.classList.remove('drag-over');
+      const fromIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
+      const toIndex = parseInt(li.dataset.index, 10);
+      moverEnFila(fromIndex, toIndex);
+    });
+
+    // Click y contextmenu (como ya tienes)
     li.onclick = () => {
-  vistaFila.style.display = 'none';
-  indiceActualFila = i;
-  reproducirDesdeFila(i);
-};
-
+      vistaFila.style.display = 'none';
+      reproducirDesdeFila(i);
+    };
     li.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       const confirmacion = confirm(`¿Eliminar "${tituloLimpio}" de la fila?`);
       if (!confirmacion) return;
-
       if (video.ruta === videoActualRuta) {
         player.pause();
         player.src = '';
@@ -330,14 +370,20 @@ function mostrarVistaFila() {
       } else {
         filaReproduccion.splice(i, 1);
       }
-
-      mostrarVistaFila(); // Recarga
+      mostrarVistaFila();
     });
 
     listaFila.appendChild(li);
   });
 
   vistaFila.style.display = 'block';
+}
+
+function moverEnFila(fromIndex, toIndex) {
+  if (fromIndex === toIndex) return;
+  const moved = filaReproduccion.splice(fromIndex, 1)[0];
+  filaReproduccion.splice(toIndex, 0, moved);
+  mostrarVistaFila();
 }
 
 
@@ -408,7 +454,6 @@ player.addEventListener('ended', () => {
     if (filaReproduccion[0].ruta === videoActualRuta) {
       filaReproduccion.shift();
     }
-    mostrarVistaFila();
     reproducirDesdeFila();
   }
 });
