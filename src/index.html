@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 </head>
 <body>
+
+  <div id="overlay-bloqueo" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:9000;"></div>
   <!-- Banner superior fijo -->
   <header class="banner">
     <h1>Karaoke</h1>
@@ -88,6 +90,7 @@
   <h2>Fila de reproducción</h2>
   <ul id="lista-fila" style="list-style: none; padding: 0;"></ul>
   <button id="btn-reproducir-fila" style="margin-top: 20px; padding: 10px 20px; font-size: 16px; cursor: pointer;">Reproducir fila</button>
+  <button id="btn-eliminar-fila" style="margin-top: 10px; padding: 6px 12px; font-size: 14px; cursor: pointer;">Eliminar toda la fila</button>
   <button id="btn-cerrar-fila" style="margin-top: 10px; padding: 6px 12px; font-size: 14px; cursor: pointer;">Cerrar</button>
 </div>
 
@@ -110,6 +113,54 @@
     <button id="mini-expand" title="Regresar al reproductor">⤴️</button>
     <button id="mini-next" title="Siguiente canción">⏭️</button>
   </div>
+</div>
+
+  <!-- Ajustes Popup -->
+<div id="popup-ajustes" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#232323; color:#fff; border-radius:12px; box-shadow:0 4px 32px #000a; z-index:10001; min-width:480px; min-height:320px; padding:0; overflow:hidden;">
+  <div style="display:flex; height:100%;">
+    <!-- Barra lateral de iconos -->
+    <div id="ajustes-sidebar" style="background:#181818; padding:24px 8px; display:flex; flex-direction:column; align-items:center; gap:24px;">
+      <button class="ajuste-icono" data-ajuste="general" title="General" style="background:none; border:none; color:#fff; font-size:28px; cursor:pointer;"><span class="material-icons">tune</span></button>
+      <button class="ajuste-icono" data-ajuste="tema" title="Tema" style="background:none; border:none; color:#fff; font-size:28px; cursor:pointer;"><span class="material-icons">palette</span></button>
+      <button class="ajuste-icono" data-ajuste="info" title="Información" style="background:none; border:none; color:#fff; font-size:28px; cursor:pointer;"><span class="material-icons">info</span></button>
+    </div>
+    <!-- Vista principal de ajustes -->
+    <div id="ajustes-contenido" style="flex:1; padding:32px; min-width:260px;">
+      <!-- Aquí se carga el contenido dinámicamente -->
+    </div>
+  </div>
+  <button id="btn-cerrar-ajustes" style="position:absolute; top:10px; right:10px; background:none; border:none; color:#fff; font-size:22px; cursor:pointer;">✖</button>
+</div>
+
+<!-- Popup de autenticación admin -->
+<div id="popup-auth-admin" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#232323; color:#fff; border-radius:12px; box-shadow:0 4px 32px #000a; z-index:10002; min-width:340px; padding:32px 28px;">
+  <h2 style="margin-bottom:18px;">Acceso administrador</h2>
+  <form id="form-auth-admin" autocomplete="off">
+    <input id="admin-usuario" type="text" placeholder="Usuario" style="width:100%;margin-bottom:12px;padding:8px;border-radius:6px;border:none;">
+    <input id="admin-password" type="password" placeholder="Contraseña" style="width:100%;margin-bottom:18px;padding:8px;border-radius:6px;border:none;">
+    <div style="display:flex;gap:12px;">
+      <button type="submit" style="flex:1;background:#27ae60;color:#fff;border:none;padding:8px 0;border-radius:6px;cursor:pointer;">Entrar</button>
+      <button type="button" id="btn-cerrar-auth-admin" style="flex:1;background:#c0392b;color:#fff;border:none;padding:8px 0;border-radius:6px;cursor:pointer;">Cancelar</button>
+    </div>
+    <div id="auth-admin-error" style="color:#ff7675;margin-top:10px;display:none;"></div>
+  </form>
+</div>
+
+<!-- Popup de menú admin -->
+<div id="popup-admin" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#232323; color:#fff; border-radius:12px; box-shadow:0 4px 32px #000a; z-index:10001; min-width:480px; min-height:320px; padding:0; overflow:hidden;">
+  <div style="display:flex; height:100%;">
+    <!-- Barra lateral de iconos -->
+    <div id="admin-sidebar" style="background:#181818; padding:24px 8px; display:flex; flex-direction:column; align-items:center; gap:24px;">
+      <button class="admin-icono" data-admin="usuarios" title="Usuarios" style="background:none; border:none; color:#fff; font-size:28px; cursor:pointer;"><span class="material-icons">group</span></button>
+      <button class="admin-icono" data-admin="logs" title="Registros" style="background:none; border:none; color:#fff; font-size:28px; cursor:pointer;"><span class="material-icons">list_alt</span></button>
+      <button class="admin-icono" data-admin="config" title="Configuración" style="background:none; border:none; color:#fff; font-size:28px; cursor:pointer;"><span class="material-icons">settings_applications</span></button>
+    </div>
+    <!-- Vista principal de admin -->
+    <div id="admin-contenido" style="flex:1; padding:32px; min-width:260px;">
+      <!-- Aquí se carga el contenido dinámicamente -->
+    </div>
+  </div>
+  <button id="btn-cerrar-admin" style="position:absolute; top:10px; right:10px; background:none; border:none; color:#fff; font-size:22px; cursor:pointer;">✖</button>
 </div>
 
   <script src="renderer.js"></script>
