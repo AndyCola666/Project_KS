@@ -210,3 +210,4 @@ ipcMain.handle('video-editar-metadatos', (event, id, datos) => {
   `).run(datos.titulo, datos.artista_id, datos.album, datos.genero, datos.año, id);
   return { ok: true };
 });
+// Cerrar la aplicación

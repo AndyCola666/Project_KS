@@ -975,6 +975,7 @@ async function cargarVistaBDyDirectorio() {
     <div id="admin-accion"></div>
   `;
   adminContenido.innerHTML = html;
+  //
 
   // Seleccionar carpeta
   document.getElementById('btn-seleccionar-carpeta').onclick = async () => {

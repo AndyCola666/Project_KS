@@ -9,7 +9,7 @@ contextBridge.exposeInMainWorld('api', {
   adminAgregar: (usuario, password) => ipcRenderer.invoke('admin-agregar', usuario, password),
   adminEditar: (id, usuario, password) => ipcRenderer.invoke('admin-editar', id, usuario, password),
   videosListar: () => ipcRenderer.invoke('videos-listar'),
-  videoEditarMetadatos: (id, datos) => ipcRenderer.invoke('video-editar-metadatos', id, datos),
+  videoEditarMetadatos: (id, datos) => ipcRenderer.invoke('video-editar-metadatos', id, datos),// Editar metadatos de un video
 });
 
 
