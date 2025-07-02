@@ -44,6 +44,8 @@ const btnCerrarAdmin = document.getElementById('btn-cerrar-admin');
 const adminContenido = document.getElementById('admin-contenido');
 const adminIconos = document.querySelectorAll('.admin-icono');
 const overlayBloqueo = document.getElementById('overlay-bloqueo');
+const selectVista = document.getElementById('select-grid-vista');
+
 
 let videosOriginales = [];
 let carpetaSeleccionada = null;
@@ -51,17 +53,7 @@ let videoActualRuta = null;
 let filaReproduccion = [];
 let indexActualFila = 0;
 let modoMiniPlayer = false;
-
-// Manejadores de eventos
-btn.addEventListener('click', async () => {
-  const resultado = await window.api.seleccionarCarpeta();
-  if (resultado && resultado.videos) {
-    videosOriginales = resultado.videos;
-    carpetaSeleccionada = resultado.ruta;
-    construirFiltros(videosOriginales);
-    mostrarVideos(videosOriginales);
-  }
-});
+let adminActual = null; // Guarda el usuario admin logueado
 
 iconBuscar.addEventListener('click', () => {
   // Solo mostrar la barra si el grid está visible (opcional)
@@ -71,13 +63,6 @@ iconBuscar.addEventListener('click', () => {
   }
 });
 
-btnActualizar.addEventListener('click', async () => {
-  if (!carpetaSeleccionada) return;
-  const resultados = await window.api.actualizarBase(carpetaSeleccionada);
-  videosOriginales = resultados;
-  construirFiltros(videosOriginales);
-  mostrarVideos(videosOriginales);
-});
 
 btnToggleFiltros.addEventListener('click', () => {
   const visible = filtrosBloque.style.display === 'flex';
@@ -136,6 +121,16 @@ function mostrarVideos(videos) {
   seccionReproductor.style.display = 'none';
   grid.style.display = 'grid';
 
+  const vista = localStorage.getItem('vistaGrid') || 'normal';
+  // Limpia clases previas
+  grid.className = 'grid';
+  if (vista === 'mosaico') {
+    grid.classList.add('mosaico');
+  }
+
+  // Lee el estado del switch
+  const mostrarInfo = localStorage.getItem('mostrarInfoCanciones') !== 'false';
+
   videos.forEach(video => {
     const card = document.createElement('div');
     card.classList.add('card');
@@ -147,20 +142,23 @@ function mostrarVideos(videos) {
     const titulo = document.createElement('h3');
     titulo.textContent = video.titulo.replace(/\.[^/.]+$/, "");
 
-    const artista = document.createElement('p');
-    artista.textContent = `Artista: ${video.artista || 'Desconocido'}`;
-
-    const album = document.createElement('p');
-    album.textContent = `Álbum: ${video.album || 'Desconocido'}`;
-
-    const genero = document.createElement('p');
-    genero.textContent = `Género: ${video.genero || 'Desconocido'}`;
-
     card.appendChild(img);
     card.appendChild(titulo);
-    card.appendChild(artista);
-    card.appendChild(album);
-    card.appendChild(genero);
+
+    if (mostrarInfo) {
+      const artista = document.createElement('p');
+      artista.textContent = `Artista: ${video.artista || 'Desconocido'}`;
+
+      const album = document.createElement('p');
+      album.textContent = `Álbum: ${video.album || 'Desconocido'}`;
+
+      const genero = document.createElement('p');
+      genero.textContent = `Género: ${video.genero || 'Desconocido'}`;
+
+      card.appendChild(artista);
+      card.appendChild(album);
+      card.appendChild(genero);
+    }
 
     card.onclick = () => {
       miniPlayer.style.display = 'none';
@@ -605,17 +603,48 @@ player.addEventListener('ended', () => {
 });
 
 const ajustesVistas = {
-  general: `<h2>General</h2><p>Ajustes generales del programa.</p>`,
-  tema: `<h2>Tema</h2><p>Opciones de apariencia y tema.</p>`,
+  general: `    <h2>General</h2>
+    <div style="margin-bottom:18px;">
+      <label style="display:flex;align-items:center;gap:12px;">
+        <input type="checkbox" id="chk-animaciones">
+        Animaciones <span style="font-size:12px;color:#aaa;">(placeholder)</span>
+      </label>
+    </div>
+    <div style="margin-bottom:18px;">
+      <label style="display:flex;align-items:center;gap:12px;">
+        <input type="checkbox" id="chk-info-canciones" checked>
+        Información de canciones
+      </label>
+    </div>
+    <div style="margin-bottom:18px;">
+      <label style="display:flex;align-items:center;gap:12px;">
+        <input type="checkbox" id="chk-musica-fondo">
+        Música de fondo <span style="font-size:12px;color:#aaa;">(placeholder)</span>
+      </label>
+    </div>`,
+  tema: `  <h2>Tema</h2>
+    <div style="margin-bottom:18px;">
+      <label for="select-fondo">Fondo de pantalla:</label>
+      <select id="select-fondo"> 
+        <option value="default">Predeterminado</option>
+        <option value="fondo1">Fondo 1</option>
+        <option value="fondo2">Fondo 2</option>
+        <option value="fondo3">Fondo 3</option>
+      </select>
+    </div>
+    <div style="margin-bottom:18px;">
+      <label for="select-grid-vista">Vista del grid:</label>
+      <select id="select-grid-vista">
+        <option value="normal">Predeterminada</option>
+        <option value="compacta">Compacta</option>
+        <option value="detallada">Detallada</option>
+        <option value="mosaico">Estilo mosaico (Windows 8)</option>
+      </select>
+    </div>`,
   info: `<h2>Información</h2><p>Versión, créditos y ayuda.</p>`
 };
 
-// Mostrar popup al hacer click en el icono de ajustes
-iconAjustes.addEventListener('click', () => {
-  overlayBloqueo.style.display = 'block';
-  popupAjustes.style.display = 'block';
-  mostrarAjuste('general');
-});
+
 
 // Mostrar overlay al abrir ajustes o admin
 iconAjustes.addEventListener('click', () => {
@@ -649,15 +678,22 @@ btnCerrarAuthAdmin.addEventListener('click', () => {
 
 // Cuando el usuario se autentica correctamente y se muestra el popup admin,
 // el overlay debe seguir visible hasta que cierre el popup admin.
-formAuthAdmin.addEventListener('submit', (e) => {
+formAuthAdmin.addEventListener('submit', async (e) => {
   e.preventDefault();
   const usuario = document.getElementById('admin-usuario').value.trim();
   const password = document.getElementById('admin-password').value;
-  if (usuario === 'admin' && password === 'admin') {
+
+  // Obtener el admin completo para guardar en adminActual
+  const lista = await window.api.adminListar();
+  const admin = lista.find(a => a.usuario === usuario);
+  const valido = await window.api.validarAdmin(usuario, password);
+
+  if (valido && admin) {
+    adminActual = admin;
     popupAuthAdmin.style.display = 'none';
     mostrarAdmin('usuarios');
     popupAdmin.style.display = 'block';
-    // overlayBloqueo sigue visible
+    overlayBloqueo.style.display = 'block';
   } else {
     authAdminError.textContent = 'Usuario o contraseña incorrectos.';
     authAdminError.style.display = 'block';
@@ -684,6 +720,54 @@ function mostrarAjuste(seccion) {
   ajustesIconos.forEach(btn => {
     btn.style.background = (btn.dataset.ajuste === seccion) ? '#333' : 'none';
   });
+    if (seccion === 'general') {
+    // Animaciones y música de fondo son placeholders
+
+    // Información de canciones
+    const chkInfo = document.getElementById('chk-info-canciones');
+    // Guarda el estado en localStorage
+    chkInfo.checked = localStorage.getItem('mostrarInfoCanciones') !== 'false';
+    chkInfo.addEventListener('change', () => {
+      localStorage.setItem('mostrarInfoCanciones', chkInfo.checked ? 'true' : 'false');
+      mostrarVideos(videosOriginales); // Refresca el grid
+    });
+  }
+    if (seccion === 'tema') {
+    // Cambiar fondo
+    const selectFondo = document.getElementById('select-fondo');
+    // Cargar fondo guardado
+    selectFondo.value = localStorage.getItem('fondoApp') || 'default';
+    selectFondo.addEventListener('change', () => {
+      localStorage.setItem('fondoApp', selectFondo.value);
+      aplicarFondo(selectFondo.value);
+    });
+    aplicarFondo(selectFondo.value);
+
+    // Cambiar vista del grid
+    const selectVista = document.getElementById('select-grid-vista');
+    selectVista.value = localStorage.getItem('vistaGrid') || 'normal';
+    selectVista.addEventListener('change', () => {
+      localStorage.setItem('vistaGrid', selectVista.value);
+      mostrarVideos(videosOriginales);
+    });
+  }
+}
+
+function aplicarFondo(fondo) {
+  const body = document.body;
+  switch (fondo) {
+    case 'fondo1':
+      body.style.background = 'linear-gradient(135deg, #232526 0%, #414345 100%)';
+      break;
+    case 'fondo2':
+      body.style.background = 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)';
+      break;
+    case 'fondo3':
+      body.style.background = 'linear-gradient(135deg, #43cea2 0%, #185a9d 100%)';
+      break;
+    default:
+      body.style.background = '';
+  }
 }
 
 const adminVistas = {
@@ -692,28 +776,24 @@ const adminVistas = {
   config: `<h2>Configuración</h2><p>Opciones avanzadas de configuración.</p>`
 };
 
-// Mostrar popup de autenticación al hacer click en el icono admin
-iconAdmin.addEventListener('click', () => {
-  popupAuthAdmin.style.display = 'block';
-  formAuthAdmin.reset();
-  authAdminError.style.display = 'none';
-});
-
 // Cerrar popup de autenticación
 btnCerrarAuthAdmin.addEventListener('click', () => {
   popupAuthAdmin.style.display = 'none';
 });
 
 // Validar usuario y contraseña (dummy, puedes cambiar la lógica después)
-formAuthAdmin.addEventListener('submit', (e) => {
+formAuthAdmin.addEventListener('submit', async (e) => {
   e.preventDefault();
   const usuario = document.getElementById('admin-usuario').value.trim();
   const password = document.getElementById('admin-password').value;
-  // Aquí pondrás la validación real contra la base de datos
-  if (usuario === 'admin' && password === 'admin') {
+
+  const valido = await window.api.validarAdmin(usuario, password);
+
+  if (valido) {
     popupAuthAdmin.style.display = 'none';
     mostrarAdmin('usuarios');
     popupAdmin.style.display = 'block';
+    overlayBloqueo.style.display = 'block';
   } else {
     authAdminError.textContent = 'Usuario o contraseña incorrectos.';
     authAdminError.style.display = 'block';
@@ -730,14 +810,262 @@ adminIconos.forEach(btn => {
   btn.addEventListener('click', () => {
     adminIconos.forEach(b => b.style.background = 'none');
     btn.style.background = '#333';
-    mostrarAdmin(btn.dataset.admin);
+    if (btn.dataset.admin === 'usuarios') {
+      cargarVistaUsuarios();
+    } else if (btn.dataset.admin === 'bdir') {
+      cargarVistaBDyDirectorio();
+    }
   });
 });
 
 // Función para mostrar el contenido de la sección seleccionada
 function mostrarAdmin(seccion) {
-  adminContenido.innerHTML = adminVistas[seccion] || '';
   adminIconos.forEach(btn => {
     btn.style.background = (btn.dataset.admin === seccion) ? '#333' : 'none';
   });
+  if (seccion === 'usuarios') {
+    cargarVistaUsuarios();
+  } else if (seccion === 'logs') {
+    adminContenido.innerHTML = '<h2>Registros</h2><p>Historial de acciones y eventos.</p>';
+  } else if (seccion === 'config') {
+    adminContenido.innerHTML = '<h2>Configuración</h2><p>Opciones avanzadas de configuración.</p>';
+  } else {
+    adminContenido.innerHTML = adminVistas[seccion] || '';
+  }
 }
+
+// --- Nuevas funciones para el manejo de administradores ---
+async function cargarVistaUsuarios() {
+  const lista = await window.api.adminListar();
+  let html = `
+    <div style="margin-bottom:18px;">
+      Sesión iniciada como <strong>${adminActual.usuario}</strong>
+      <button id="btn-editar-admin-actual" style="margin-left:12px;">Editar usuario</button>
+    </div>
+    <div style="margin-bottom:18px;">
+      <button id="btn-ver-admins">Ver administradores</button>
+      <button id="btn-agregar-admin" style="margin-left:8px;">Agregar administrador</button>
+      <button id="btn-eliminar-admin" style="margin-left:8px;">Eliminar administrador</button>
+    </div>
+    <div id="admin-accion"></div>
+  `;
+  adminContenido.innerHTML = html;
+
+  document.getElementById('btn-editar-admin-actual').onclick = mostrarEditarAdminActual;
+  document.getElementById('btn-ver-admins').onclick = mostrarTablaAdmins;
+  document.getElementById('btn-agregar-admin').onclick = mostrarAgregarAdmin;
+  document.getElementById('btn-eliminar-admin').onclick = mostrarEliminarAdmin;
+}
+
+function mostrarEditarAdminActual() {
+  adminContenido.querySelector('#admin-accion').innerHTML = `
+    <h3>Editar usuario actual</h3>
+    <form id="form-editar-admin">
+      <input type="text" id="nuevo-usuario" value="${adminActual.usuario}" placeholder="Nuevo usuario" required style="margin-bottom:8px;">
+      <input type="password" id="nueva-password" placeholder="Nueva contraseña" required style="margin-bottom:8px;">
+      <button type="submit">Guardar cambios</button>
+    </form>
+    <div id="editar-admin-error" style="color:#ff7675;margin-top:10px;display:none;"></div>
+  `;
+  adminContenido.querySelector('#form-editar-admin').onsubmit = async (e) => {
+    e.preventDefault();
+    const nuevoUsuario = document.getElementById('nuevo-usuario').value.trim();
+    const nuevaPassword = document.getElementById('nueva-password').value;
+    mostrarConfirmacion('¿Seguro que quieres guardar los cambios?', async () => {
+      const res = await window.api.adminEditar(adminActual.id, nuevoUsuario, nuevaPassword);
+      if (res.ok) {
+        adminActual.usuario = nuevoUsuario;
+        cargarVistaUsuarios();
+      } else {
+        document.getElementById('editar-admin-error').textContent = res.error;
+        document.getElementById('editar-admin-error').style.display = 'block';
+      }
+    });
+  };
+}
+
+async function mostrarTablaAdmins() {
+  const lista = await window.api.adminListar();
+  let tabla = `<table style="width:100%;margin-top:10px;"><tr><th>ID</th><th>Usuario</th></tr>`;
+  for (const admin of lista) {
+    tabla += `<tr><td>${admin.id}</td><td>${admin.usuario}</td></tr>`;
+  }
+  tabla += `</table>`;
+  adminContenido.querySelector('#admin-accion').innerHTML = tabla;
+}
+
+function mostrarAgregarAdmin() {
+  adminContenido.querySelector('#admin-accion').innerHTML = `
+    <h3>Agregar administrador</h3>
+    <form id="form-agregar-admin">
+      <input type="text" id="nuevo-admin-usuario" placeholder="Usuario" required style="margin-bottom:8px;">
+      <input type="password" id="nuevo-admin-password" placeholder="Contraseña" required style="margin-bottom:8px;">
+      <button type="submit">Agregar</button>
+    </form>
+    <div id="agregar-admin-error" style="color:#ff7675;margin-top:10px;display:none;"></div>
+  `;
+  adminContenido.querySelector('#form-agregar-admin').onsubmit = async (e) => {
+    e.preventDefault();
+    const usuario = document.getElementById('nuevo-admin-usuario').value.trim();
+    const password = document.getElementById('nuevo-admin-password').value;
+    mostrarConfirmacion('¿Seguro que quieres agregar este administrador?', async () => {
+      const res = await window.api.adminAgregar(usuario, password);
+      if (res.ok) {
+        cargarVistaUsuarios();
+      } else {
+        document.getElementById('agregar-admin-error').textContent = res.error;
+        document.getElementById('agregar-admin-error').style.display = 'block';
+      }
+    });
+  };
+}
+
+async function mostrarEliminarAdmin() {
+  const lista = await window.api.adminListar();
+  let opciones = lista.map(a => `<option value="${a.id}">${a.usuario}</option>`).join('');
+  adminContenido.querySelector('#admin-accion').innerHTML = `
+    <h3>Eliminar administrador</h3>
+    <form id="form-eliminar-admin">
+      <select id="admin-a-eliminar">${opciones}</select>
+      <button type="submit" style="margin-left:8px;">Eliminar</button>
+    </form>
+    <div id="eliminar-admin-error" style="color:#ff7675;margin-top:10px;display:none;"></div>
+  `;
+  adminContenido.querySelector('#form-eliminar-admin').onsubmit = async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('admin-a-eliminar').value;
+    mostrarConfirmacion('¿Seguro que quieres eliminar este administrador?', async () => {
+      const res = await window.api.adminEliminar(id);
+      if (res.ok) {
+        cargarVistaUsuarios();
+      } else {
+        document.getElementById('eliminar-admin-error').textContent = res.error;
+        document.getElementById('eliminar-admin-error').style.display = 'block';
+      }
+    });
+  };
+}
+
+// Nueva función para cargar la vista de Base de datos y directorio
+async function cargarVistaBDyDirectorio() {
+  // Obtén el directorio actual (puedes guardar la última carpeta seleccionada en localStorage)
+  let carpetaSeleccionada = localStorage.getItem('carpetaSeleccionada') || '';
+  let html = `
+    <h2>Base de datos y directorio</h2>
+    <div style="margin-bottom:18px;">
+      <strong>Directorio de carpetas:</strong>
+      <div style="margin:8px 0;">
+        <span id="directorio-actual">${carpetaSeleccionada ? carpetaSeleccionada : 'No seleccionado'}</span>
+        <button id="btn-seleccionar-carpeta" style="margin-left:12px;">Seleccionar carpeta</button>
+      </div>
+    </div>
+    <div style="margin-bottom:18px;">
+      <strong>Editar metadatos</strong>
+      <div style="margin:8px 0;">
+        <button id="btn-editar-metadatos">Editar metadatos de videos</button>
+      </div>
+    </div>
+    <div style="margin-bottom:18px;">
+      <strong>Actualizar Base de datos</strong>
+      <div style="margin:8px 0;">
+        <button id="btn-actualizar-base">Actualizar base de datos</button>
+      </div>
+    </div>
+    <div id="bd-dir-msg" style="color:#27ae60;margin-top:10px;display:none;"></div>
+    <div id="admin-accion"></div>
+  `;
+  adminContenido.innerHTML = html;
+
+  // Seleccionar carpeta
+  document.getElementById('btn-seleccionar-carpeta').onclick = async () => {
+    const resultado = await window.api.seleccionarCarpeta();
+    if (resultado && resultado.ruta) {
+      localStorage.setItem('carpetaSeleccionada', resultado.ruta);
+      document.getElementById('directorio-actual').textContent = resultado.ruta;
+      mostrarPopup('Directorio actualizado.');
+    }
+  };
+
+  // Actualizar base de datos
+  document.getElementById('btn-actualizar-base').onclick = async () => {
+    const carpeta = localStorage.getItem('carpetaSeleccionada');
+    if (!carpeta) {
+      mostrarPopup('Selecciona primero un directorio.');
+      return;
+    }
+    await window.api.actualizarBase(carpeta);
+    mostrarPopup('Base de datos actualizada.');
+  };
+
+  // Editar metadatos 
+  document.getElementById('btn-editar-metadatos').onclick = mostrarEditorMetadatos;
+}
+
+async function mostrarEditorMetadatos() {
+  const videos = await window.api.videosListar();
+  let html = `<h3>Editar metadatos de videos</h3>
+    <div style="max-height:60vh;overflow:auto;">
+      <table style="width:100%;font-size:15px;">
+        <tr>
+          <th>Título</th>
+          <th>Artista</th>
+          <th>Álbum</th>
+          <th>Género</th>
+          <th>Año</th>
+          <th>Acción</th>
+        </tr>
+        ${videos.map(video => `
+          <tr data-id="${video.id}">
+            <td><input type="text" value="${video.titulo || ''}" style="width:120px;"></td>
+            <td><input type="text" value="${video.artista_id || ''}" style="width:80px;"></td>
+            <td><input type="text" value="${video.album || ''}" style="width:80px;"></td>
+            <td><input type="text" value="${video.genero || ''}" style="width:80px;"></td>
+            <td><input type="text" value="${video.año || ''}" style="width:60px;"></td>
+            <td><button class="btn-guardar-metadato">Guardar</button></td>
+          </tr>
+        `).join('')}
+      </table>
+    </div>
+    <div id="editar-metadatos-msg" style="color:#27ae60;margin-top:10px;display:none;"></div>
+  `;
+  adminContenido.querySelector('#admin-accion').innerHTML = html;
+
+  // Asigna eventos a los botones de guardar
+  adminContenido.querySelectorAll('.btn-guardar-metadato').forEach(btn => {
+    btn.onclick = async function() {
+      const tr = btn.closest('tr');
+      const id = tr.dataset.id;
+      const inputs = tr.querySelectorAll('input');
+      const datos = {
+        titulo: inputs[0].value,
+        artista_id: inputs[1].value,
+        album: inputs[2].value,
+        genero: inputs[3].value,
+        año: inputs[4].value
+      };
+      mostrarConfirmacion('¿Guardar cambios en este video?', async () => {
+        await window.api.videoEditarMetadatos(id, datos);
+        document.getElementById('editar-metadatos-msg').textContent = 'Metadatos actualizados.';
+        document.getElementById('editar-metadatos-msg').style.display = 'block';
+      });
+    };
+  });
+}
+
+// Cargar videos al iniciar
+window.addEventListener('DOMContentLoaded', async () => {
+  const carpeta = localStorage.getItem('carpetaSeleccionada');
+  if (carpeta) {
+    const resultado = await window.api.actualizarBase(carpeta);
+    if (resultado && resultado.length) {
+      videosOriginales = resultado;
+      construirFiltros(videosOriginales);
+      mostrarVideos(videosOriginales);
+    }
+  }
+});
+// Aplicar fondo guardado al cargar
+window.addEventListener('DOMContentLoaded', () => {
+  aplicarFondo(localStorage.getItem('fondoApp') || 'default');
+});
+

@@ -46,9 +46,6 @@
 <main class="main-content">
     <!-- Barra de búsqueda y filtros (aparecen arriba del grid) -->
 <div class="filtros-barra" id="filtros-barra" style="display: none;">
-  <button id="boton-carpeta" title="Seleccionar carpeta de videos">
-    <span class="material-icons">folder_open</span>
-  </button>
   <input type="text" id="busqueda" placeholder="Buscar video por nombre...">
 
   <button id="boton-toggle-filtros" title="Mostrar filtros">
@@ -77,10 +74,6 @@
       </select>
     </div>
   </div>
-
-  <button id="boton-actualizar" title="Actualizar base de datos">
-    <span class="material-icons">refresh</span>
-  </button>
 </div>
 
     <!-- Grid de videos -->
@@ -152,8 +145,7 @@
     <!-- Barra lateral de iconos -->
     <div id="admin-sidebar" style="background:#181818; padding:24px 8px; display:flex; flex-direction:column; align-items:center; gap:24px;">
       <button class="admin-icono" data-admin="usuarios" title="Usuarios" style="background:none; border:none; color:#fff; font-size:28px; cursor:pointer;"><span class="material-icons">group</span></button>
-      <button class="admin-icono" data-admin="logs" title="Registros" style="background:none; border:none; color:#fff; font-size:28px; cursor:pointer;"><span class="material-icons">list_alt</span></button>
-      <button class="admin-icono" data-admin="config" title="Configuración" style="background:none; border:none; color:#fff; font-size:28px; cursor:pointer;"><span class="material-icons">settings_applications</span></button>
+      <button class="admin-icono" data-admin="bdir" title="Base de datos y directorio" style="background:none; border:none; color:#fff; font-size:28px; cursor:pointer;"><span class="material-icons">database</span></button>
     </div>
     <!-- Vista principal de admin -->
     <div id="admin-contenido" style="flex:1; padding:32px; min-width:260px;">

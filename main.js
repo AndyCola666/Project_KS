@@ -25,7 +25,19 @@ db.exec(`
     año TEXT,
     FOREIGN KEY (artista_id) REFERENCES artistas(id)
   );
+
+    CREATE TABLE IF NOT EXISTS administradores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL
+  );
 `);
+
+const adminPorDefecto = db.prepare('SELECT * FROM administradores WHERE usuario = ?').get('admin');
+if (!adminPorDefecto) {
+  db.prepare('INSERT INTO administradores (usuario, password) VALUES (?, ?)').run('admin', 'admin');
+}
+
 
 function obtenerArchivosRecursivos(carpeta, extensiones = ['.mp4', '.mkv', '.avi', '.mov']) {
   let archivos = [];
@@ -138,4 +150,63 @@ ipcMain.handle('seleccionar-carpeta', async () => {
 ipcMain.handle('actualizar-base', async (_, rutaCarpeta) => {
   if (!rutaCarpeta || !fs.existsSync(rutaCarpeta)) return [];
   return await escanearCarpeta(rutaCarpeta);
+});
+
+ipcMain.handle('validar-admin', (event, usuario, password) => {
+  const row = db.prepare('SELECT * FROM administradores WHERE usuario = ? AND password = ?').get(usuario, password);
+  return !!row; // true si existe, false si no
+});
+
+// Obtener todos los administradores (solo id y usuario)
+ipcMain.handle('admin-listar', () => {
+  return db.prepare('SELECT id, usuario FROM administradores').all();
+});
+
+// Agregar un nuevo administrador
+ipcMain.handle('admin-agregar', (event, usuario, password) => {
+  try {
+    db.prepare('INSERT INTO administradores (usuario, password) VALUES (?, ?)').run(usuario, password);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+// Editar usuario y/o contraseña del admin actual
+ipcMain.handle('admin-editar', (event, id, nuevoUsuario, nuevaPassword) => {
+  try {
+    db.prepare('UPDATE administradores SET usuario = ?, password = ? WHERE id = ?').run(nuevoUsuario, nuevaPassword, id);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+// Eliminar un administrador por id
+ipcMain.handle('admin-eliminar', (event, id) => {
+  try {
+    db.prepare('DELETE FROM administradores WHERE id = ?').run(id);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+// Obtener todos los videos
+ipcMain.handle('videos-listar', () => {
+  return db.prepare('SELECT * FROM videos').all();
+});
+
+// Editar metadatos de un video
+ipcMain.handle('video-editar-metadatos', (event, id, datos) => {
+  db.prepare(`
+    UPDATE videos SET 
+      titulo = ?, 
+      artista_id = ?, 
+      album = ?, 
+      genero = ?, 
+      año = ?
+    WHERE id = ?
+  `).run(datos.titulo, datos.artista_id, datos.album, datos.genero, datos.año, id);
+  return { ok: true };
 });
