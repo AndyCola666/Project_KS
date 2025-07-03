@@ -194,11 +194,33 @@ ipcMain.handle('admin-eliminar', (event, id) => {
 
 // Obtener todos los videos
 ipcMain.handle('videos-listar', () => {
-  return db.prepare('SELECT * FROM videos').all();
+  return db.prepare(`
+    SELECT videos.*, artistas.nombre as artista
+    FROM videos
+    LEFT JOIN artistas ON videos.artista_id = artistas.id
+  `).all();
 });
 
 // Editar metadatos de un video
 ipcMain.handle('video-editar-metadatos', (event, id, datos) => {
+  let artista_id = null;
+
+  // Si el usuario ingresó un nombre de artista
+  if (datos.artista && datos.artista.trim() !== '') {
+    // Busca el artista, si no existe lo crea
+    let artista = db.prepare('SELECT id FROM artistas WHERE nombre = ?').get(datos.artista.trim());
+    if (!artista) {
+      const info = db.prepare('INSERT INTO artistas (nombre) VALUES (?)').run(datos.artista.trim());
+      artista_id = info.lastInsertRowid;
+    } else {
+      artista_id = artista.id;
+    }
+  } else {
+    // Si el campo artista está vacío, conserva el artista_id actual
+    const video = db.prepare('SELECT artista_id FROM videos WHERE id = ?').get(id);
+    artista_id = video ? video.artista_id : null;
+  }
+
   db.prepare(`
     UPDATE videos SET 
       titulo = ?, 
@@ -207,7 +229,14 @@ ipcMain.handle('video-editar-metadatos', (event, id, datos) => {
       genero = ?, 
       año = ?
     WHERE id = ?
-  `).run(datos.titulo, datos.artista_id, datos.album, datos.genero, datos.año, id);
+  `).run(
+    datos.titulo,
+    artista_id,
+    datos.album,
+    datos.genero,
+    datos.año,
+    id
+  );
   return { ok: true };
 });
-// Cerrar la aplicación
+

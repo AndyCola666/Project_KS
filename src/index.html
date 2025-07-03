@@ -140,7 +140,23 @@
 </div>
 
 <!-- Popup de menú admin -->
-<div id="popup-admin" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#232323; color:#fff; border-radius:12px; box-shadow:0 4px 32px #000a; z-index:10001; min-width:480px; min-height:320px; padding:0; overflow:hidden;">
+<div id="popup-admin" style="
+  display:none; 
+  position:fixed; 
+  top:50%; left:50%; 
+  transform:translate(-50%,-50%);
+  background:#232323; 
+  color:#fff; 
+  border-radius:12px; 
+  box-shadow:0 4px 32px #000a; 
+  z-index:10001; 
+  min-width:480px; 
+  min-height:320px; 
+  max-width:90vw;
+  max-height:90vh;
+  padding:0; 
+  overflow:hidden;
+">
   <div style="display:flex; height:100%;">
     <!-- Barra lateral de iconos -->
     <div id="admin-sidebar" style="background:#181818; padding:24px 8px; display:flex; flex-direction:column; align-items:center; gap:24px;">
@@ -148,11 +164,31 @@
       <button class="admin-icono" data-admin="bdir" title="Base de datos y directorio" style="background:none; border:none; color:#fff; font-size:28px; cursor:pointer;"><span class="material-icons">database</span></button>
     </div>
     <!-- Vista principal de admin -->
-    <div id="admin-contenido" style="flex:1; padding:32px; min-width:260px;">
+    <div id="admin-contenido" style="flex:1; padding:32px; min-width:260px; overflow-y:auto; max-height:90vh;">
       <!-- Aquí se carga el contenido dinámicamente -->
     </div>
   </div>
   <button id="btn-cerrar-admin" style="position:absolute; top:10px; right:10px; background:none; border:none; color:#fff; font-size:22px; cursor:pointer;">✖</button>
+</div>
+
+<div id="popup-metadatos" style="
+  display:none;
+  position:fixed;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  background:#232323;
+  color:#fff;
+  border-radius:12px;
+  box-shadow:0 4px 32px #000a;
+  z-index:10002;
+  min-width:600px;
+  max-width:95vw;
+  max-height:90vh;
+  padding:0;
+  overflow:hidden;
+">
+  <div style="padding:32px; overflow-y:auto; max-height:80vh;" id="contenido-metadatos"></div>
+  <button id="btn-cerrar-metadatos" style="position:absolute; top:10px; right:10px; background:none; border:none; color:#fff; font-size:22px; cursor:pointer;">✖</button>
 </div>
 
   <script src="renderer.js"></script>

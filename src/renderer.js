@@ -1,5 +1,3 @@
-// renderer.js limpio y corregido con sistema de fila y mini reproductor funcional
-
 // Referencias
 const btn = document.getElementById('boton-carpeta');
 const grid = document.getElementById('grid-videos');
@@ -255,14 +253,14 @@ function mostrarConfirmacion(mensaje, onConfirm, onCancel) {
   confirmDiv.style.borderRadius = '10px';
   confirmDiv.style.boxShadow = '0 2px 12px rgba(0,0,0,0.2)';
   confirmDiv.style.fontSize = '16px';
-  confirmDiv.style.zIndex = 10000;
+  confirmDiv.style.zIndex = 20000;
   confirmDiv.style.display = 'flex';
   confirmDiv.style.flexDirection = 'column';
   confirmDiv.style.alignItems = 'center';
   confirmDiv.style.gap = '18px';
 
   const msg = document.createElement('div');
-  msg.textContent = mensaje;
+  msg.innerHTML = mensaje;
   msg.style.marginBottom = '10px';
 
   const btns = document.createElement('div');
@@ -988,15 +986,22 @@ async function cargarVistaBDyDirectorio() {
   };
 
   // Actualizar base de datos
-  document.getElementById('btn-actualizar-base').onclick = async () => {
-    const carpeta = localStorage.getItem('carpetaSeleccionada');
-    if (!carpeta) {
-      mostrarPopup('Selecciona primero un directorio.');
-      return;
-    }
-    await window.api.actualizarBase(carpeta);
+document.getElementById('btn-actualizar-base').onclick = async () => {
+  const carpeta = localStorage.getItem('carpetaSeleccionada');
+  if (!carpeta) {
+    mostrarPopup('Selecciona primero un directorio.');
+    return;
+  }
+  const resultado = await window.api.actualizarBase(carpeta);
+  if (resultado && resultado.length) {
+    videosOriginales = resultado;
+    construirFiltros(videosOriginales);
+    mostrarVideos(videosOriginales);
     mostrarPopup('Base de datos actualizada.');
-  };
+  } else {
+    mostrarPopup('No se pudo actualizar la base de datos.', 'error');
+  }
+};
 
   // Editar metadatos 
   document.getElementById('btn-editar-metadatos').onclick = mostrarEditorMetadatos;
@@ -1005,6 +1010,7 @@ async function cargarVistaBDyDirectorio() {
 async function mostrarEditorMetadatos() {
   const videos = await window.api.videosListar();
   let html = `<h3>Editar metadatos de videos</h3>
+    <form id="form-editar-metadatos">
     <div style="max-height:60vh;overflow:auto;">
       <table style="width:100%;font-size:15px;">
         <tr>
@@ -1013,45 +1019,97 @@ async function mostrarEditorMetadatos() {
           <th>Álbum</th>
           <th>Género</th>
           <th>Año</th>
-          <th>Acción</th>
         </tr>
         ${videos.map(video => `
           <tr data-id="${video.id}">
-            <td><input type="text" value="${video.titulo || ''}" style="width:120px;"></td>
-            <td><input type="text" value="${video.artista_id || ''}" style="width:80px;"></td>
-            <td><input type="text" value="${video.album || ''}" style="width:80px;"></td>
-            <td><input type="text" value="${video.genero || ''}" style="width:80px;"></td>
-            <td><input type="text" value="${video.año || ''}" style="width:60px;"></td>
-            <td><button class="btn-guardar-metadato">Guardar</button></td>
+            <td><input type="text" value="${video.titulo || ''}" data-original="${video.titulo || ''}" style="width:120px;"></td>
+            <td><input type="text" value="${video.artista || ''}" data-original="${video.artista || ''}" style="width:80px;"></td>
+            <td><input type="text" value="${video.album || ''}" data-original="${video.album || ''}" style="width:80px;"></td>
+            <td><input type="text" value="${video.genero || ''}" data-original="${video.genero || ''}" style="width:80px;"></td>
+            <td><input type="text" value="${video.año || ''}" data-original="${video.año || ''}" style="width:60px;"></td>
           </tr>
         `).join('')}
       </table>
     </div>
+    <div style="margin-top:18px; text-align:right;">
+      <button type="submit" id="btn-guardar-todos-metadatos" style="padding:8px 24px;">Guardar cambios</button>
+    </div>
     <div id="editar-metadatos-msg" style="color:#27ae60;margin-top:10px;display:none;"></div>
+    </form>
   `;
-  adminContenido.querySelector('#admin-accion').innerHTML = html;
+  document.getElementById('contenido-metadatos').innerHTML = html;
+  document.getElementById('popup-metadatos').style.display = 'block';
 
-  // Asigna eventos a los botones de guardar
-  adminContenido.querySelectorAll('.btn-guardar-metadato').forEach(btn => {
-    btn.onclick = async function() {
-      const tr = btn.closest('tr');
+  document.getElementById('form-editar-metadatos').onsubmit = async (e) => {
+    e.preventDefault();
+    // Detectar cambios
+    const filas = Array.from(document.querySelectorAll('#form-editar-metadatos tr[data-id]'));
+    const cambios = [];
+    filas.forEach(tr => {
       const id = tr.dataset.id;
       const inputs = tr.querySelectorAll('input');
       const datos = {
         titulo: inputs[0].value,
-        artista_id: inputs[1].value,
+        artista: inputs[1].value, 
         album: inputs[2].value,
         genero: inputs[3].value,
         año: inputs[4].value
-      };
-      mostrarConfirmacion('¿Guardar cambios en este video?', async () => {
-        await window.api.videoEditarMetadatos(id, datos);
-        document.getElementById('editar-metadatos-msg').textContent = 'Metadatos actualizados.';
-        document.getElementById('editar-metadatos-msg').style.display = 'block';
+        };
+      // Detecta si hay algún cambio respecto al valor original
+      let cambiado = false;
+      inputs.forEach((input, idx) => {
+        if (input.value !== input.getAttribute('data-original')) cambiado = true;
       });
-    };
-  });
+      if (cambiado) {
+        cambios.push({ id, datos, antes: {
+          titulo: inputs[0].getAttribute('data-original'),
+          artista_id: inputs[1].getAttribute('data-original'),
+          album: inputs[2].getAttribute('data-original'),
+          genero: inputs[3].getAttribute('data-original'),
+          año: inputs[4].getAttribute('data-original')
+        }});
+      }
+    });
+
+    if (cambios.length === 0) {
+      mostrarPopup('No hay cambios para guardar.');
+      return;
+    }
+
+    // Muestra resumen de cambios
+    let resumen = `<div style="max-height:40vh;overflow:auto;"><strong>Resumen de cambios:</strong><ul>`;
+    cambios.forEach(c => {
+      resumen += `<li>
+        <b>ID ${c.id}</b>:<br>
+        ${Object.keys(c.datos).map(key => 
+          c.antes[key] !== c.datos[key]
+            ? `<span style="color:#f1c40f">${key}:</span> <span style="color:#aaa">${c.antes[key]}</span> <b>→</b> <span style="color:#2ecc71">${c.datos[key]}</span>`
+            : ''
+        ).filter(Boolean).join('<br>')}
+      </li>`;
+    });
+    resumen += `</ul></div>¿Seguro que quieres guardar estos cambios?`;
+
+    mostrarConfirmacion(resumen, async () => {
+  for (const c of cambios) {
+    await window.api.videoEditarMetadatos(c.id, c.datos);
+  }
+  document.getElementById('editar-metadatos-msg').textContent = 'Metadatos actualizados.';
+  document.getElementById('editar-metadatos-msg').style.display = 'block';
+
+  // Refresca los videos en memoria y el grid
+  //const nuevosVideos = await window.api.videosListar();
+  //videosOriginales = nuevosVideos;
+  //construirFiltros(videosOriginales);
+  //mostrarVideos(videosOriginales);
+    });
+  };
 }
+
+// Cerrar el popup de metadatos
+document.getElementById('btn-cerrar-metadatos').onclick = () => {
+  document.getElementById('popup-metadatos').style.display = 'none';
+};
 
 // Cargar videos al iniciar
 window.addEventListener('DOMContentLoaded', async () => {
