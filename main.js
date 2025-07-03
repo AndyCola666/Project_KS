@@ -152,9 +152,13 @@ ipcMain.handle('actualizar-base', async (_, rutaCarpeta) => {
   return await escanearCarpeta(rutaCarpeta);
 });
 
-ipcMain.handle('validar-admin', (event, usuario, password) => {
+ipcMain.handle('admin-login', (event, usuario, password) => {
   const row = db.prepare('SELECT * FROM administradores WHERE usuario = ? AND password = ?').get(usuario, password);
-  return !!row; // true si existe, false si no
+  if (row) {
+    return { ok: true, admin: { id: row.id, usuario: row.usuario } };
+  } else {
+    return { ok: false, error: 'Usuario o contraseña incorrectos.' };
+  }
 });
 
 // Obtener todos los administradores (solo id y usuario)

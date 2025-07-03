@@ -4,7 +4,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('api', {
   seleccionarCarpeta: () => ipcRenderer.invoke('seleccionar-carpeta'),
   actualizarBase: (rutaCarpeta) => ipcRenderer.invoke('actualizar-base', rutaCarpeta),
-  validarAdmin: (usuario, password) => ipcRenderer.invoke('validar-admin', usuario, password),
+  adminLogin: (usuario, password) => ipcRenderer.invoke('admin-login', usuario, password),
   adminListar: () => ipcRenderer.invoke('admin-listar'),
   adminAgregar: (usuario, password) => ipcRenderer.invoke('admin-agregar', usuario, password),
   adminEditar: (id, usuario, password) => ipcRenderer.invoke('admin-editar', id, usuario, password),
