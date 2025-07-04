@@ -58,9 +58,8 @@ let adminActual = null; // Guarda el usuario admin logueado
 // 2. 🧩 FILTROS Y BÚSQUEDA
 // ==============================
 iconBuscar.addEventListener('click', () => {
-  if (grid.style.display === 'grid' || grid.style.display === '') {
-    filtrosBarra.style.display = (filtrosBarra.style.display === 'flex') ? 'none' : 'flex';
-  }
+  if (grid.style.display !== 'grid') return;
+  filtrosBarra.classList.toggle('visible');
 });
 
 btnToggleFiltros.addEventListener('click', () => {
@@ -167,7 +166,7 @@ function mostrarVideos(videos) {
       videoPrincipal.appendChild(player);
       seccionReproductor.style.display = 'block';
       grid.style.display = 'none';
-      filtrosBarra.style.display = 'none';
+      filtrosBarra.classList.remove('visible');
       player.src = video.ruta;
       player.play();
       videoActualRuta = video.ruta;
@@ -183,6 +182,15 @@ function mostrarVideos(videos) {
 
     grid.appendChild(card);
   });
+}
+
+//Función para aleatorizar el grid.
+function mezclarArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 }
 
 // ==============================
@@ -286,6 +294,7 @@ function mostrarVistaFila() {
   listaFila.innerHTML = '';
   filaReproduccion.forEach((video, i) => {
     const li = document.createElement('li');
+    li.classList.add('lista-fila-item');
     const tituloLimpio = video.titulo.replace(/\.[^/.]+$/, "");
     const esActual = video.ruta === videoActualRuta;
 
@@ -362,12 +371,16 @@ iconFila.addEventListener('click', () => {
     mostrarPopup('No hay canciones en la fila');
     return;
   }
-  mostrarVistaFila();
+
+  vistaFila.classList.toggle('visible');
+
+  if (vistaFila.classList.contains('visible')) {
+    mostrarVistaFila();
+  }
 });
 
 btnCerrarFila.addEventListener('click', () => {
-  vistaFila.style.display = 'none';
-  inputBusqueda.focus();
+  vistaFila.classList.remove('visible');
 });
 
 btnReproducirFila.addEventListener('click', () => {
@@ -406,10 +419,11 @@ function reproducirDesdeFila(indice = 0) {
   player.src = video.ruta;
   player.play();
   videoActualRuta = video.ruta;
+  llenarRecomendados(video);
   tituloVideo.textContent = video.titulo.replace(/\.[^/.]+$/, "");
   iconRegresarSidebar.style.display = 'block';
   iconBuscar.style.display = 'none';
-  filtrosBarra.style.display = 'none';
+  filtrosBarra.classList.remove('visible');
 }
 
 // ==============================
@@ -464,8 +478,8 @@ function mostrarMenuContextual(x, y, video) {
 
   const menu = document.createElement('div');
   menu.id = 'menu-contextual';
+  menu.classList.add('menu-contextual-opcion');
   menu.style.position = 'absolute';
-  menu.style.background = '#222';
   menu.style.padding = '10px';
   menu.style.borderRadius = '6px';
   menu.style.color = '#fff';
@@ -633,7 +647,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (resultado && resultado.length) {
       videosOriginales = resultado;
       construirFiltros(videosOriginales);
-      mostrarVideos(videosOriginales);
+      // Mezcla los videos antes de mostrarlos
+      const videosMezclados = mezclarArray([...videosOriginales]);
+      mostrarVideos(videosMezclados);
     }
   }
 });

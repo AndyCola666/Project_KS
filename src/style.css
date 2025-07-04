@@ -101,13 +101,23 @@ body.sidebar-expanded .main-content {
   align-items: center;
   gap: 10px;
   margin-bottom: 20px;
-  background: #fff;
+  background: #ffffffa9;
   padding: 10px 20px;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   position: sticky;
   top: 70px;
   z-index: 99;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+  pointer-events: none;
+}
+.filtros-barra.visible {
+  max-height: 500px; /* Ajusta según la altura máxima que pueda tener */
+  opacity: 1;
+  pointer-events: auto;
 }
 .filtros-barra input,
 .filtros-barra select {
@@ -204,7 +214,7 @@ body.sidebar-expanded .main-content {
 }
 
 .card {
-  background-color: #2c2c2c;
+  background-color: #8f137a33;
   padding: 10px;
   border-radius: 8px;
   text-align: center;
@@ -275,18 +285,85 @@ body.sidebar-expanded .main-content {
   z-index: 1;
 }
 
-#vista-fila {
+.vista-fila {
+  opacity: 0;
+  transform: translate(-50%, -45%);
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+
+  display: block;
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 98;
-  background: #2c2c2c;
-  border-radius: 8px;
-  padding: 20px;
+  z-index: 100;
+  background: #2c2c2c8e;
+  border: 2px solid #864ae6;
+  border-radius: 10px;
+  padding: 0;
   max-height: 80vh;
+  width: 500px;
   overflow-y: auto;
+  overflow-x: hidden;
   box-shadow: 0 4px 32px #000a;
+  text-align: left;
+}
+
+.vista-fila.visible {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+}
+/* Encabezado fijo dentro del popup */
+.fila-header {
+  position: sticky;
+  top: 0;
+  background-color: #2c2c2c;
+  z-index: 101;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid #864ae6;
+}
+
+.fila-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #fff;
+}
+
+.fila-botones {
+  display: flex;
+  gap: 10px;
+}
+
+.fila-botones button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: white;
+  font-size: 22px;
+  padding: 4px;
+}
+
+.fila-botones button:hover {
+  color: #864ae6;
+}
+#lista-fila {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+#lista-fila li {
+  background: #462525;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
 }
 
 #lista-fila li.dragging {
@@ -295,7 +372,18 @@ body.sidebar-expanded .main-content {
 #lista-fila li.drag-over {
   border: 2px dashed #4caf50;
 }
-#context-menu {
+#lista-fila li:hover {
+  background-color: #b39e9e;
+  transform: scale(1.02);
+}
+.lista-fila-item {
+  cursor: grab;
+}
+
+.lista-fila-item:active {
+  cursor: grabbing;
+}
+#contextmenu {
   position: fixed;
   cursor: pointer;
   top: 0;
@@ -306,4 +394,13 @@ body.sidebar-expanded .main-content {
   display: none;
   justify-content: center;
   align-items: center;
+}
+.menu-contextual-opcion {
+  cursor:cell;
+  background: #222;
+}
+.menu-contextual-opcion:hover {
+  background-color: #ad7070;
+  transition: background-color 0.2s, transform 0.2s;
+  transform: scale(1.02);
 }

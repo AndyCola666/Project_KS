@@ -45,7 +45,7 @@
   <!-- Contenido principal -->
 <main class="main-content">
     <!-- Barra de búsqueda y filtros (aparecen arriba del grid) -->
-<div class="filtros-barra" id="filtros-barra" style="display: none;">
+<div class="filtros-barra" id="filtros-barra">
   <input type="text" id="busqueda" placeholder="Buscar video por nombre...">
 
   <button id="boton-toggle-filtros" title="Mostrar filtros">
@@ -79,13 +79,25 @@
     <!-- Grid de videos -->
     <div id="grid-videos" class="grid"></div>
 
-    <div id="vista-fila" style="display: none; text-align: left; padding: 20px; max-height: 80vh; overflow-y: auto; background-color: #2c2c2c; border-radius: 8px;">
-  <h2>Fila de reproducción</h2>
-  <ul id="lista-fila" style="list-style: none; padding: 0;"></ul>
-  <button id="btn-reproducir-fila" style="margin-top: 20px; padding: 10px 20px; font-size: 16px; cursor: pointer;">Reproducir fila</button>
-  <button id="btn-eliminar-fila" style="margin-top: 10px; padding: 6px 12px; font-size: 14px; cursor: pointer;">Eliminar toda la fila</button>
-  <button id="btn-cerrar-fila" style="margin-top: 10px; padding: 6px 12px; font-size: 14px; cursor: pointer;">Cerrar</button>
+<div id="vista-fila" class="vista-fila">
+  <div class="fila-header">
+    <h2>Fila de reproducción</h2>
+    <div class="fila-botones">
+      <button id="btn-reproducir-fila" title="Reproducir fila">
+        <span class="material-icons">play_arrow</span>
+      </button>
+      <button id="btn-eliminar-fila" title="Eliminar toda la fila">
+        <span class="material-icons">delete</span>
+      </button>
+      <button id="btn-cerrar-fila" title="Cerrar">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+  </div>
+
+  <ul id="lista-fila"></ul>
 </div>
+
 
     <!-- Vista de reproducción de un solo video -->
 <div id="vista-reproductor" style="display: none;">
