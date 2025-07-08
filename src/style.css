@@ -404,3 +404,75 @@ body.sidebar-expanded .main-content {
   transition: background-color 0.2s, transform 0.2s;
   transform: scale(1.02);
 }
+
+/* Estilos para el menú de ajustes */
+/* Ajustes - diseño de secciones */
+/* Popup Ajustes: contenedor principal */
+.popup-ajustes {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #232323;
+  color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 32px #000a;
+  z-index: 10001;
+  min-width: 480px;
+  min-height: 320px;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Layout interno (sidebar + contenido) */
+.ajustes-layout {
+  display: flex;
+  height: 100%;
+}
+
+/* Sidebar de iconos */
+.ajustes-sidebar {
+  background: #181818;
+  padding: 24px 8px;
+  display: flex;
+  height: 55vh;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+/* Botones del sidebar */
+.ajuste-icono {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 28px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.ajuste-icono:hover,
+.ajuste-icono:focus {
+  background: #333;
+  border-radius: 8px;
+}
+
+/* Área de contenido */
+.ajustes-contenido {
+  flex: 1;
+  padding: 32px;
+  min-width: 260px;
+}
+
+/* Botón de cerrar */
+.btn-cerrar-ajustes {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+}

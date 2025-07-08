@@ -514,38 +514,38 @@ document.addEventListener('click', (e) => {
 
 const ajustesVistas = {
   general: `
-    <h2>General</h2>
-    <div style="margin-bottom:18px;">
-      <label style="display:flex;align-items:center;gap:12px;">
+    <h2 class="ajuste-titulo">General</h2>
+    <div class="ajuste-item">
+      <label class="ajuste-label">
         <input type="checkbox" id="chk-animaciones">
-        Animaciones <span style="font-size:12px;color:#aaa;">(placeholder)</span>
+        Animaciones <span class="ajuste-nota">(placeholder)</span>
       </label>
     </div>
-    <div style="margin-bottom:18px;">
-      <label style="display:flex;align-items:center;gap:12px;">
+    <div class="ajuste-item">
+      <label class="ajuste-label">
         <input type="checkbox" id="chk-info-canciones" checked>
         Información de canciones
       </label>
     </div>
-    <div style="margin-bottom:18px;">
-      <label style="display:flex;align-items:center;gap:12px;">
+    <div class="ajuste-item">
+      <label class="ajuste-label">
         <input type="checkbox" id="chk-musica-fondo">
-        Música de fondo <span style="font-size:12px;color:#aaa;">(placeholder)</span>
+        Música de fondo <span class="ajuste-nota">(placeholder)</span>
       </label>
     </div>
   `,
   tema: `
-    <h2>Tema</h2>
-    <div style="margin-bottom:18px;">
+    <h2 class="ajuste-titulo">Tema</h2>
+    <div class="ajuste-item">
       <label for="select-fondo">Fondo de pantalla:</label>
-      <select id="select-fondo"> 
+      <select id="select-fondo">
         <option value="default">Predeterminado</option>
         <option value="fondo1">Fondo 1</option>
         <option value="fondo2">Fondo 2</option>
         <option value="fondo3">Fondo 3</option>
       </select>
     </div>
-    <div style="margin-bottom:18px;">
+    <div class="ajuste-item">
       <label for="select-grid-vista">Vista del grid:</label>
       <select id="select-grid-vista">
         <option value="normal">Predeterminada</option>
@@ -555,8 +555,9 @@ const ajustesVistas = {
       </select>
     </div>
   `,
-  info: `<h2>Información</h2><p>Versión, créditos y ayuda.</p>`
+  info: `<h2 class="ajuste-titulo">Información</h2><p>Versión, créditos y ayuda.</p>`
 };
+
 
 // Mostrar overlay al abrir ajustes
 iconAjustes.addEventListener('click', () => {
@@ -582,28 +583,27 @@ ajustesIconos.forEach(btn => {
 
 // Función para mostrar el contenido de la sección seleccionada
 function mostrarAjuste(seccion) {
+  // Inserta el HTML de la sección (usa clases, no estilos inline)
   ajustesContenido.innerHTML = ajustesVistas[seccion] || '';
+
+  // Resalta el ícono activo en el sidebar de ajustes
   ajustesIconos.forEach(btn => {
     btn.style.background = (btn.dataset.ajuste === seccion) ? '#333' : 'none';
   });
 
+  // Configuración para sección "General"
   if (seccion === 'general') {
-    // Animaciones y música de fondo son placeholders
-
-    // Información de canciones
     const chkInfo = document.getElementById('chk-info-canciones');
-    // Guarda el estado en localStorage
     chkInfo.checked = localStorage.getItem('mostrarInfoCanciones') !== 'false';
     chkInfo.addEventListener('change', () => {
       localStorage.setItem('mostrarInfoCanciones', chkInfo.checked ? 'true' : 'false');
-      mostrarVideos(videosOriginales); // Refresca el grid
+      mostrarVideos(videosOriginales);
     });
   }
 
+  // Configuración para sección "Tema"
   if (seccion === 'tema') {
-    // Cambiar fondo
     const selectFondo = document.getElementById('select-fondo');
-    // Cargar fondo guardado
     selectFondo.value = localStorage.getItem('fondoApp') || 'default';
     selectFondo.addEventListener('change', () => {
       localStorage.setItem('fondoApp', selectFondo.value);
@@ -611,7 +611,6 @@ function mostrarAjuste(seccion) {
     });
     aplicarFondo(selectFondo.value);
 
-    // Cambiar vista del grid
     const selectVista = document.getElementById('select-grid-vista');
     selectVista.value = localStorage.getItem('vistaGrid') || 'normal';
     selectVista.addEventListener('change', () => {
@@ -620,6 +619,7 @@ function mostrarAjuste(seccion) {
     });
   }
 }
+
 
 function aplicarFondo(fondo) {
   const body = document.body;
@@ -659,7 +659,12 @@ btnCerrarAjustes.addEventListener('click', () => {
   popupAjustes.style.display = 'none';
 });
 
-// --- Nuevas funciones para el manejo de administradores ---
+// ==============================
+// 8. 👤 ADMINISTRADORES Y POPUPS
+// ==============================
+
+
+// --- Funciones para el manejo de administradores ---
 async function cargarVistaUsuarios() {
   let html = `
     <div style="margin-bottom:18px;">
@@ -781,10 +786,6 @@ async function mostrarEliminarAdmin() {
     });
   };
 }
-
-// ==============================
-// 8. 👤 ADMINISTRADORES Y POPUPS
-// ==============================
 
 // Mostrar popup de autenticación al hacer click en el icono admin
 iconAdmin.addEventListener('click', () => {
