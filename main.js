@@ -22,7 +22,7 @@ db.exec(`
     artista_id INTEGER,
     album TEXT,
     genero TEXT,
-    año TEXT,
+    decada TEXT,
     FOREIGN KEY (artista_id) REFERENCES artistas(id)
   );
 
@@ -82,14 +82,14 @@ async function escanearCarpeta(carpetaRaiz) {
       let artistaId = artista ? artista.id : db.prepare('INSERT INTO artistas (nombre) VALUES (?)').run(nombreArtista).lastInsertRowid;
 
       db.prepare(`
-        INSERT INTO videos (ruta, titulo, artista_id, album, genero, año)
+        INSERT INTO videos (ruta, titulo, artista_id, album, genero, decada)
         VALUES (?, ?, ?, ?, ?, ?)
         ON CONFLICT(ruta) DO UPDATE SET
           titulo=excluded.titulo,
           artista_id=excluded.artista_id,
           album=excluded.album,
           genero=excluded.genero,
-          año=excluded.año
+          decada=excluded.decada
       `).run(
         ruta,
         common.title || path.basename(ruta),
@@ -231,14 +231,14 @@ ipcMain.handle('video-editar-metadatos', (event, id, datos) => {
       artista_id = ?, 
       album = ?, 
       genero = ?, 
-      año = ?
+      decada = ?
     WHERE id = ?
   `).run(
     datos.titulo,
     artista_id,
     datos.album,
     datos.genero,
-    datos.año,
+    datos.decada,
     id
   );
   return { ok: true };

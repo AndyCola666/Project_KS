@@ -10,7 +10,7 @@ const filtrosBarra = document.getElementById('filtros-barra');
 const filtrosBloque = document.getElementById('filtros-bloque');
 const filtrosGenero = document.getElementById('filtros-genero');
 const filtrosArtista = document.getElementById('filtros-artista');
-const filtrosAño = document.getElementById('filtros-año');
+const filtrosDecada = document.getElementById('filtros-decada');
 const iconRegresarSidebar = document.getElementById('icon-regresar-sidebar');
 const btnToggleFiltros = document.getElementById('boton-toggle-filtros');
 const btnActualizar = document.getElementById('boton-actualizar');
@@ -70,17 +70,17 @@ btnToggleFiltros.addEventListener('click', () => {
 function construirFiltros(videos) {
   const generos = new Set();
   const artistas = new Set();
-  const años = new Set();
+  const decadas = new Set();
 
   videos.forEach(video => {
     if (video.genero) generos.add(video.genero);
     if (video.artista) artistas.add(video.artista);
-    if (video.año) años.add(video.año);
+    if (video.decada) decadas.add(video.decada);
   });
 
   poblarSelect(filtrosGenero, generos);
   poblarSelect(filtrosArtista, artistas);
-  poblarSelect(filtrosAño, años);
+  poblarSelect(filtrosDecada, decadas);
 }
 
 function poblarSelect(select, valores) {
@@ -97,14 +97,14 @@ function aplicarFiltros() {
   const texto = inputBusqueda.value.toLowerCase();
   const generoSel = filtrosGenero.value;
   const artistaSel = filtrosArtista.value;
-  const añoSel = filtrosAño.value;
+  const decadasSel = filtrosDecada.value;
 
   const filtrados = videosOriginales.filter(video => {
     const coincideTexto = video.titulo.toLowerCase().includes(texto);
     const coincideGenero = !generoSel || video.genero === generoSel;
     const coincideArtista = !artistaSel || video.artista === artistaSel;
-    const coincideAño = !añoSel || video.año === añoSel;
-    return coincideTexto && coincideGenero && coincideArtista && coincideAño;
+    const coincideDecada = !decadasSel || video.decada === decadasSel;
+    return coincideTexto && coincideGenero && coincideArtista && coincideDecada;
   });
 
   mostrarVideos(filtrados);
@@ -113,7 +113,7 @@ function aplicarFiltros() {
 inputBusqueda.addEventListener('input', aplicarFiltros);
 filtrosGenero.addEventListener('change', aplicarFiltros);
 filtrosArtista.addEventListener('change', aplicarFiltros);
-filtrosAño.addEventListener('change', aplicarFiltros);
+filtrosDecada.addEventListener('change', aplicarFiltros);
 
 // ==============================
 // 3. 🖼️ MOSTRAR VIDEOS Y GRID
@@ -533,18 +533,24 @@ const ajustesVistas = {
         Música de fondo <span class="ajuste-nota">(placeholder)</span>
       </label>
     </div>
+        <div class="ajuste-item">
+      <label class="ajuste-label">
+        <input type="checkbox" id="chk-musica-fondo">
+        Efectos de sonido <span class="ajuste-nota">(placeholder)</span>
+      </label>
+    </div>
   `,
   tema: `
     <h2 class="ajuste-titulo">Tema</h2>
-    <div class="ajuste-item">
-      <label for="select-fondo">Fondo de pantalla:</label>
-      <select id="select-fondo">
-        <option value="default">Predeterminado</option>
-        <option value="fondo1">Fondo 1</option>
-        <option value="fondo2">Fondo 2</option>
-        <option value="fondo3">Fondo 3</option>
-      </select>
-    </div>
+      <div class="ajuste-item">
+    <label for="select-tema-color">Paleta de colores:</label>
+    <select id="select-tema-color">
+      <option value="default">Predeterminado</option>
+      <option value="tema-oscuro">Oscuro</option>
+      <option value="tema-claro">Claro</option>
+      <option value="tema-naturaleza">Retro</option>
+    </select>
+  </div>
     <div class="ajuste-item">
       <label for="select-grid-vista">Vista del grid:</label>
       <select id="select-grid-vista">
@@ -575,8 +581,6 @@ btnCerrarAjustes.addEventListener('click', () => {
 // Cambiar de sección al hacer click en un icono
 ajustesIconos.forEach(btn => {
   btn.addEventListener('click', () => {
-    ajustesIconos.forEach(b => b.style.background = 'none');
-    btn.style.background = '#333';
     mostrarAjuste(btn.dataset.ajuste);
   });
 });
@@ -587,10 +591,9 @@ function mostrarAjuste(seccion) {
   ajustesContenido.innerHTML = ajustesVistas[seccion] || '';
 
   // Resalta el ícono activo en el sidebar de ajustes
-  ajustesIconos.forEach(btn => {
-    btn.style.background = (btn.dataset.ajuste === seccion) ? '#333' : 'none';
-  });
-
+ajustesIconos.forEach(btn => {
+  btn.classList.toggle('activo', btn.dataset.ajuste === seccion);
+});
   // Configuración para sección "General"
   if (seccion === 'general') {
     const chkInfo = document.getElementById('chk-info-canciones');
@@ -603,13 +606,16 @@ function mostrarAjuste(seccion) {
 
   // Configuración para sección "Tema"
   if (seccion === 'tema') {
-    const selectFondo = document.getElementById('select-fondo');
-    selectFondo.value = localStorage.getItem('fondoApp') || 'default';
-    selectFondo.addEventListener('change', () => {
-      localStorage.setItem('fondoApp', selectFondo.value);
-      aplicarFondo(selectFondo.value);
-    });
-    aplicarFondo(selectFondo.value);
+    const selectPaleta = document.getElementById('select-tema-color');
+    selectPaleta.value = localStorage.getItem('paletaApp') || 'default';
+
+    selectPaleta.addEventListener('change', () => {
+    localStorage.setItem('paletaApp', selectPaleta.value);
+    aplicarPaleta(selectPaleta.value);
+});
+
+// Aplicar de inmediato
+aplicarPaleta(selectPaleta.value);
 
     const selectVista = document.getElementById('select-grid-vista');
     selectVista.value = localStorage.getItem('vistaGrid') || 'normal';
@@ -620,27 +626,16 @@ function mostrarAjuste(seccion) {
   }
 }
 
+function aplicarPaleta(nombre) {
+  document.body.classList.remove('tema-oscuro', 'tema-claro', 'tema-naturaleza');
 
-function aplicarFondo(fondo) {
-  const body = document.body;
-  switch (fondo) {
-    case 'fondo1':
-      body.style.background = 'linear-gradient(135deg, #232526 0%, #414345 100%)';
-      break;
-    case 'fondo2':
-      body.style.background = 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)';
-      break;
-    case 'fondo3':
-      body.style.background = 'linear-gradient(135deg, #43cea2 0%, #185a9d 100%)';
-      break;
-    default:
-      body.style.background = '';
+  if (nombre && nombre !== 'default') {
+    document.body.classList.add(nombre);
   }
 }
-
 // Aplicar fondo guardado al cargar
 window.addEventListener('DOMContentLoaded', async () => {
-  aplicarFondo(localStorage.getItem('fondoApp') || 'default');
+  aplicarPaleta(localStorage.getItem('paletaApp') || 'default');
   const carpeta = localStorage.getItem('carpetaSeleccionada');
   if (carpeta) {
     const resultado = await window.api.actualizarBase(carpeta);
@@ -1051,7 +1046,7 @@ async function mostrarEditorMetadatos() {
           <th>Artista</th>
           <th>Álbum</th>
           <th>Género</th>
-          <th>Año</th>
+          <th>Década</th>
         </tr>
         ${videos.map(video => `
           <tr data-id="${video.id}">
@@ -1059,7 +1054,7 @@ async function mostrarEditorMetadatos() {
             <td><input type="text" value="${video.artista || ''}" data-original="${video.artista || ''}" style="width:80px;"></td>
             <td><input type="text" value="${video.album || ''}" data-original="${video.album || ''}" style="width:80px;"></td>
             <td><input type="text" value="${video.genero || ''}" data-original="${video.genero || ''}" style="width:80px;"></td>
-            <td><input type="text" value="${video.año || ''}" data-original="${video.año || ''}" style="width:60px;"></td>
+            <td><input type="text" value="${video.decada || ''}" data-original="${video.decada || ''}" style="width:60px;"></td>
           </tr>
         `).join('')}
       </table>
@@ -1086,7 +1081,7 @@ async function mostrarEditorMetadatos() {
         artista: inputs[1].value, 
         album: inputs[2].value,
         genero: inputs[3].value,
-        año: inputs[4].value
+        decada: inputs[4].value
       };
       // Detecta si hay algún cambio respecto al valor original
       let cambiado = false;
@@ -1099,7 +1094,7 @@ async function mostrarEditorMetadatos() {
           artista_id: inputs[1].getAttribute('data-original'),
           album: inputs[2].getAttribute('data-original'),
           genero: inputs[3].getAttribute('data-original'),
-          año: inputs[4].getAttribute('data-original')
+          decada: inputs[4].getAttribute('data-original')
         }});
       }
     });

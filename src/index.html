@@ -12,7 +12,7 @@
   <div id="overlay-bloqueo" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:9000;"></div>
   <!-- Banner superior fijo -->
   <header class="banner">
-    <h1>Sexy's Karaoke</h1>
+  <img src="assets/logo-ks.png" alt="">
   </header>
 
   <!-- Barra lateral izquierda -->
@@ -68,8 +68,8 @@
     </div>
 
     <div class="filtros-grupo">
-      <label for="filtros-año">Año</label>
-      <select id="filtros-año">
+      <label for="filtros-decada">Década</label>
+      <select id="filtros-decada">
         <option value="">Todos</option>
       </select>
     </div>
@@ -123,28 +123,16 @@
   <!-- Ajustes Popup -->
 <div id="popup-ajustes" class="popup-ajustes">
   <div class="ajustes-layout">
-    <!-- Barra lateral de iconos -->
     <div id="ajustes-sidebar" class="ajustes-sidebar">
-      <button class="ajuste-icono" data-ajuste="general" title="General">
-        <span class="material-icons">tune</span>
-      </button>
-      <button class="ajuste-icono" data-ajuste="tema" title="Tema">
-        <span class="material-icons">palette</span>
-      </button>
-      <button class="ajuste-icono" data-ajuste="info" title="Información">
-        <span class="material-icons">info</span>
-      </button>
+      <button class="ajuste-icono" data-ajuste="general" title="General"><span class="material-icons">tune</span></button>
+      <button class="ajuste-icono" data-ajuste="tema" title="Tema"><span class="material-icons">palette</span></button>
+      <button class="ajuste-icono" data-ajuste="info" title="Información"><span class="material-icons">info</span></button>
     </div>
-
-    <!-- Vista principal de ajustes -->
     <div id="ajustes-contenido" class="ajustes-contenido">
-      <!-- Contenido dinámico -->
+      <!-- Aquí se inserta el contenido con renderer.js -->
     </div>
   </div>
-
-  <button id="btn-cerrar-ajustes" class="btn-cerrar-ajustes" title="Cerrar ajustes">
-    ✖
-  </button>
+  <button id="btn-cerrar-ajustes" class="btn-cerrar-ajustes" title="Cerrar ajustes">✖</button>
 </div>
 
 

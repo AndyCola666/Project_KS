@@ -1,14 +1,50 @@
 :root {
-  --color-fondo: #3D74B6;
-  --color-boton: #EAC8A6;
-  --color-boton-hover: #eb8927;
-  --color-sidebar: #DC3C22;
-  --color-tarjetas: #9c1f0b;
-  --color-tarjetas-hover: #DC3C22;
-  --color-popup: #19d329;
+  --color-fondo: #660e60;
+  --color-boton: #f3d0a4;
+  --color-boton-hover: #cfa093;
+  --color-sidebar: #893f71;
+  --color-tarjetas: #deae9f21;
+  --color-tarjetas-hover: #893f71;
+  --color-popup: #ce9750;
   --color-texto: #ffffff;
   --color-texto-secundario: #aaaaaa;
   --color-borde: #444;
+}
+.tema-oscuro {
+  --color-fondo: #1a1a1a;
+  --color-boton: #9d6bfd;
+  --color-boton-hover: #b288ff;
+  --color-sidebar: #2c2c2c;
+  --color-tarjetas: #29292955;
+  --color-tarjetas-hover: #3e1e5a;
+  --color-popup: #7c4dff;
+  --color-texto: #ffffff;
+  --color-texto-secundario: #888;
+  --color-borde: #555;
+}
+.tema-claro {
+  --color-fondo: #f7e9d7;
+  --color-boton: #e1a87a;
+  --color-boton-hover: #d38763;
+  --color-sidebar: #bc8f8f;
+  --color-tarjetas: #f1cfa555;
+  --color-tarjetas-hover: #e6b88a;
+  --color-popup: #f4a261;
+  --color-texto: #2a2a2a;
+  --color-texto-secundario: #555;
+  --color-borde: #ccc;
+}
+.tema-naturaleza {
+  --color-fondo: #2e473b;
+  --color-boton: #b9e4c9;
+  --color-boton-hover: #8fc1a9;
+  --color-sidebar: #376c5d;
+  --color-tarjetas: #3a574f55;
+  --color-tarjetas-hover: #58b68c;
+  --color-popup: #69c3a1;
+  --color-texto: #ffffff;
+  --color-texto-secundario: #cccccc;
+  --color-borde: #44675b;
 }
 
 body {
@@ -35,13 +71,19 @@ body.sidebar-expanded .main-content {
   left: 0;
   width: 100%;
   height: 60px;
-  background: var(--color-fondo);
-  color: var(--color-texto);
+  background: #660e609f;
   display: flex;
-  align-items: center;
+  justify-content: center;  /* ← centrado horizontal */
+  align-items: center;      /* ← centrado vertical */
   z-index: 100;
-  padding-left: 80px; /* espacio para la sidebar */
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-bottom: 1px solid var(--color-borde);
+  padding: 0 20px;
+}
+
+.banner img {
+  height: 40px;           /* ajusta al tamaño del banner */
+  object-fit: contain;
 }
 
 /* Sidebar lateral */
@@ -506,27 +548,28 @@ body.sidebar-expanded .main-content {
   border-radius: 12px;
   box-shadow: 0 4px 32px #000a;
   z-index: 10001;
-  min-width: 480px;
+  min-width: 520px;
   min-height: 320px;
   padding: 0;
   overflow: hidden;
 }
 
-/* Layout interno (sidebar + contenido) */
+/* Layout de ajustes (sidebar + contenido) */
 .ajustes-layout {
   display: flex;
   height: 100%;
 }
 
-/* Sidebar de iconos */
+/* Sidebar */
 .ajustes-sidebar {
-  background: var(--color-sidebar);
-  padding: 24px 8px;
-  display: flex;
-  height: 55vh;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
+    background: var(--color-sidebar);
+    padding: 24px 8px;
+    border-radius: 5px;
+    display: flex;
+    height: fit-content;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
 }
 
 /* Botones del sidebar */
@@ -542,21 +585,65 @@ body.sidebar-expanded .main-content {
 .ajuste-icono:hover {
   background: var(--color-boton-hover);
   border-radius: 8px;
+  color: var(--color-acento);
 }
 
-/* Área de contenido */
+.ajuste-icono.activo {
+  background: var(--color-acento);
+  border-radius: 8px;
+  color: var(--color-boton-hover);
+}
+
+/* Contenido dinámico */
 .ajustes-contenido {
   flex: 1;
-  padding: 32px;
-  min-width: 260px;
+  padding: 20px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  overflow-y: auto;
 }
 
-/* Botón de cerrar */
+/* Título como banner interno */
+.ajuste-titulo {
+  font-size: 20px;
+  font-weight: bold;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-borde);
+  margin-bottom: 12px;
+}
+
+/* Ítems (checkboxes o selects) */
+.ajuste-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #2c2c2c;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--color-borde);
+}
+
+/* Label de los ajustes */
+.ajuste-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+}
+
+/* Notas pequeñas */
+.ajuste-nota {
+  font-size: 12px;
+  color: var(--color-texto-secundario);
+}
+
+/* Botón cerrar */
 .btn-cerrar-ajustes {
   position: absolute;
-  background: none;
   top: 10px;
   right: 10px;
+  background: none;
   border: none;
   color: var(--color-boton);
   font-size: 22px;
@@ -596,7 +683,7 @@ body.sidebar-expanded .main-content {
   left: 50%;
   transform: translateX(-50%) translateY(20px); /* Estado inicial */
   background: var(--color-popup, #444);
-  color: var(--color-texto, #fff);
+  color: #f5f5f5;
   padding: 14px 32px;
   border-radius: 8px;
   box-shadow: 0 2px 12px #000a;
