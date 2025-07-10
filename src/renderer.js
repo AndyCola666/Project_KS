@@ -1234,29 +1234,31 @@ function mostrarConfirmacion(mensaje, onConfirm, onCancel) {
 }
 
 function mostrarPopup(mensaje, tipo = 'info') {
-  // Elimina cualquier popup previo
-  const existente = document.getElementById('popup-msg');
-  if (existente) existente.remove();
+  const anterior = document.getElementById('popup-msg');
+  if (anterior) anterior.remove();
 
   const popup = document.createElement('div');
   popup.id = 'popup-msg';
-  popup.style.position = 'fixed';
-  popup.style.bottom = '32px';
-  popup.style.left = '50%';
-  popup.style.transform = 'translateX(-50%)';
-  popup.style.background = tipo === 'error' ? '#e74c3c' : '#232323';
-  popup.style.color = '#fff';
-  popup.style.padding = '14px 32px';
-  popup.style.borderRadius = '8px';
-  popup.style.boxShadow = '0 2px 12px #000a';
-  popup.style.zIndex = 10010;
-  popup.style.fontSize = '1.1em';
+  popup.className = 'popup-msg popup-entrada';
   popup.textContent = mensaje;
+
+  if (tipo === 'error') {
+    popup.style.background = 'var(--color-error, #e74c3c)';
+  } else {
+    popup.style.background = 'var(--color-popup, #444)';
+  }
 
   document.body.appendChild(popup);
 
+  // Luego de 2s, cambia a animación de salida
   setTimeout(() => {
-    popup.remove();
-  }, 2600);
+    popup.classList.remove('popup-entrada');
+    popup.classList.add('popup-salida');
+
+    // Elimina después de la animación de salida (400ms)
+    popup.addEventListener('animationend', () => {
+      popup.remove();
+    }, { once: true });
+  }, 2200);
 }
 
