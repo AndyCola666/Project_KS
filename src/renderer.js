@@ -174,6 +174,8 @@ function mostrarVideos(videos) {
       iconBuscar.style.display = 'none';
       iconRegresarSidebar.style.display = 'block';
       tituloVideo.textContent = video.titulo.replace(/\.[^/.]+$/, "");
+      document.getElementById("video-principal").scrollIntoView({ behavior: "smooth", block: "start" });
+
     };
     card.addEventListener('contextmenu', e => {
       e.preventDefault();
@@ -182,6 +184,8 @@ function mostrarVideos(videos) {
 
     grid.appendChild(card);
   });
+// Al final de mostrarVistaReproductor() por ejemplo
+
 }
 
 //Función para aleatorizar el grid.
@@ -192,6 +196,11 @@ function mezclarArray(array) {
   }
   return array;
 }
+//Animación banner
+window.addEventListener('DOMContentLoaded', () => {
+  const banner = document.querySelector('.banner');
+  banner.classList.add('inicio-animado');
+});
 
 // ==============================
 // 4. ▶️ REPRODUCTOR Y MINI-PLAYER
@@ -260,7 +269,7 @@ miniClose.addEventListener('click', (e) => {
         modoMiniPlayer = true;
         reproducirDesdeFila(0);
       }
-    }, cerrarMiniPlayer);
+    },);
   } else {
     player.pause();
     player.src = '';
@@ -276,6 +285,7 @@ miniExpand.addEventListener('click', () => {
   modoMiniPlayer = false;
   iconRegresarSidebar.style.display = 'block';
   iconBuscar.style.display = 'none';
+  document.getElementById("video-principal").scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
 player.addEventListener('ended', () => {
@@ -462,6 +472,8 @@ function llenarRecomendados(videoBase) {
       videoActualRuta = video.ruta;
       tituloVideo.textContent = video.titulo.replace(/\.[^/.]+$/, "");
       llenarRecomendados(video);
+      document.getElementById("video-principal").scrollIntoView({ behavior: "smooth", block: "start" });
+
     };
     card.addEventListener('contextmenu', e => {
       e.preventDefault();
