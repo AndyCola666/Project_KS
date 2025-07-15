@@ -1147,19 +1147,6 @@ document.getElementById('btn-cerrar-metadatos').onclick = () => {
   document.getElementById('popup-metadatos').style.display = 'none';
 };
 
-// Cargar videos al iniciar
-window.addEventListener('DOMContentLoaded', async () => {
-  aplicarFondo(localStorage.getItem('fondoApp') || 'default');
-  const carpeta = localStorage.getItem('carpetaSeleccionada');
-  if (carpeta) {
-    const resultado = await window.api.actualizarBase(carpeta);
-    if (resultado && resultado.length) {
-      videosOriginales = resultado;
-      construirFiltros(videosOriginales);
-      mostrarVideos(videosOriginales);
-    }
-  }
-});
 
 // ==============================
 // 10. 🪟 UTILIDADES Y POPUPS
