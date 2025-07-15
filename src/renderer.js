@@ -666,33 +666,96 @@ btnCerrarAjustes.addEventListener('click', () => {
   popupAjustes.style.display = 'none';
 });
 
-// ==============================
-// 8. 👤 ADMINISTRADORES Y POPUPS
-// ==============================
+// =====================================
+// 8. 👤 ADMINISTRADORES y BASE DE DATOS
+// =====================================
 
 
 // --- Funciones para el manejo de administradores ---
-async function cargarVistaUsuarios() {
-  let html = `
-    <div style="margin-bottom:18px;">
-      Sesión iniciada como <strong>${adminActual.usuario}</strong>
-      <button id="btn-editar-admin-actual" style="margin-left:12px;">Editar usuario</button>
-    </div>
-    <div style="margin-bottom:18px;">
-      <button id="btn-ver-admins">Ver administradores</button>
-      <button id="btn-agregar-admin" style="margin-left:8px;">Agregar administrador</button>
-      <button id="btn-eliminar-admin" style="margin-left:8px;">Eliminar administrador</button>
-    </div>
-    <div id="admin-accion"></div>
-  `;
-  adminContenido.innerHTML = html;
+async function cargarVistaAdmin(seccion) {
+  let html = '';
 
-  document.getElementById('btn-editar-admin-actual').onclick = mostrarEditarAdminActual;
-  document.getElementById('btn-ver-admins').onclick = mostrarTablaAdmins;
-  document.getElementById('btn-agregar-admin').onclick = mostrarAgregarAdmin;
-  document.getElementById('btn-eliminar-admin').onclick = mostrarEliminarAdmin;
-  // Opcional: puedes mostrar la tabla de admins por default
-  mostrarTablaAdmins();
+  if (seccion === 'usuarios') {
+    html += `
+      <h2>Administradores</h2>
+      <div style="margin-bottom:18px;">
+        Sesión iniciada como <strong>${adminActual.usuario}</strong>
+        <button id="btn-editar-admin-actual" style="margin-left:12px;">Editar usuario</button>
+      </div>
+      <div style="margin-bottom:18px;">
+        <button id="btn-ver-admins">Ver administradores</button>
+        <button id="btn-agregar-admin" style="margin-left:8px;">Agregar administrador</button>
+        <button id="btn-eliminar-admin" style="margin-left:8px;">Eliminar administrador</button>
+      </div>
+      <div id="admin-accion"></div>
+      <div id="tabla-admins" style="margin-top:18px;"></div>
+    `;
+  }
+
+  if (seccion === 'bd') {
+    const carpetaSeleccionada = localStorage.getItem('carpetaSeleccionada') || '';
+    html += `
+      <h2>Base de datos y directorio</h2>
+      <div style="margin-bottom:18px;">
+        <strong>Directorio de carpetas:</strong>
+        <div style="margin:8px 0;">
+          <span id="directorio-actual">${carpetaSeleccionada || 'No seleccionado'}</span>
+          <button id="btn-seleccionar-carpeta" style="margin-left:12px;">Seleccionar carpeta</button>
+        </div>
+      </div>
+      <div style="margin-bottom:18px;">
+        <strong>Editar metadatos</strong>
+        <div style="margin:8px 0;">
+          <button id="btn-editar-metadatos">Editar metadatos de videos</button>
+        </div>
+      </div>
+      <div style="margin-bottom:18px;">
+        <strong>Actualizar Base de datos</strong>
+        <div style="margin:8px 0;">
+          <button id="btn-actualizar-base">Actualizar base de datos</button>
+        </div>
+      </div>
+      <div id="bd-dir-msg" style="color:#27ae60;margin-top:10px;display:none;"></div>
+      <div id="admin-accion"></div>
+    `;
+  }
+
+  adminContenido.innerHTML = html;
+  // Activar lógica según sección
+  if (seccion === 'usuarios') {
+    document.getElementById('btn-editar-admin-actual')?.addEventListener('click', mostrarEditarAdminActual);
+    document.getElementById('btn-ver-admins')?.addEventListener('click', mostrarTablaAdmins);
+    document.getElementById('btn-agregar-admin')?.addEventListener('click', mostrarAgregarAdmin);
+    document.getElementById('btn-eliminar-admin')?.addEventListener('click', mostrarEliminarAdmin);
+  }
+
+  if (seccion === 'bd') {
+    document.getElementById('btn-seleccionar-carpeta')?.addEventListener('click', async () => {
+      const resultado = await window.api.seleccionarCarpeta();
+      if (resultado?.ruta) {
+        localStorage.setItem('carpetaSeleccionada', resultado.ruta);
+        document.getElementById('directorio-actual').textContent = resultado.ruta;
+        mostrarPopup('Directorio actualizado.');
+      }
+    });
+
+    document.getElementById('btn-actualizar-base')?.addEventListener('click', async () => {
+      const carpeta = localStorage.getItem('carpetaSeleccionada');
+      if (!carpeta) return mostrarPopup('Selecciona primero un directorio.');
+
+      const resultado = await window.api.actualizarBase(carpeta);
+      if (resultado?.length) {
+        videosOriginales = resultado;
+        construirFiltros(videosOriginales);
+        mostrarVideos(videosOriginales);
+        mostrarPopup('Base de datos actualizada.');
+      } else {
+        mostrarPopup('No se pudo actualizar la base de datos.', 'error');
+      }
+    });
+
+    document.getElementById('btn-editar-metadatos')?.addEventListener('click', mostrarEditorMetadatos);
+  }
 }
 
 function mostrarEditarAdminActual() {
@@ -724,18 +787,21 @@ function mostrarEditarAdminActual() {
 
 async function mostrarTablaAdmins() {
   const lista = await window.api.adminListar();
-  let html = `<table style="width:100%;font-size:15px;">
-    <tr><th>Usuario</th><th>Acciones</th></tr>
-    ${lista.map(a => `
+  let html = `
+    <table style="width:100%;font-size:15px;">
       <tr>
-        <td>${a.usuario}</td>
-        <td>
-          <button onclick="mostrarEditarAdmin(${a.id})">Editar</button>
-          <button onclick="mostrarEliminarAdmin(${a.id})">Eliminar</button>
-        </td>
+        <th>ID</th>
+        <th>Usuario</th>
       </tr>
-    `).join('')}
-  </table>`;
+      ${lista.map(a => `
+        <tr>
+          <td>${a.id}</td>
+          <td>${a.usuario}</td>
+        </tr>
+      `).join('')}
+    </table>
+  `;
+
   const tablaAdmins = document.getElementById('tabla-admins');
   if (tablaAdmins) {
     tablaAdmins.innerHTML = html;
@@ -845,206 +911,7 @@ function mostrarAdmin(seccion) {
   adminIconos.forEach(btn => {
     btn.style.background = (btn.dataset.admin === seccion) ? '#333' : 'none';
   });
-
-  // Sobrescribe el contenido base según la sección
-  if (seccion === 'usuarios') {
-    cargarVistaUsuarios();
-  }
-  if (seccion === 'bd') {
-    cargarVistaBDyDirectorio();
-  }
-}
-
-// Vistas de admin
-const adminVistas = {
-  usuarios: `
-    <h2>Administradores</h2>
-    <div id="admin-accion"></div>
-    <div style="margin-top:18px;">
-      <button id="btn-agregar-admin">Agregar administrador</button>
-      <button id="btn-editar-admin-actual">Editar usuario actual</button>
-      <button id="btn-eliminar-admin">Eliminar administrador</button>
-    </div>
-    <div id="tabla-admins" style="margin-top:18px;"></div>
-  `,
-  bd: `
-    <h2>Base de datos y directorio</h2>
-    <div id="bd-accion"></div>
-    <div style="margin-top:18px;">
-      <button id="btn-editar-metadatos">Editar metadatos</button>
-      <button id="btn-actualizar-base">Actualizar base de datos</button>
-    </div>
-    <div id="bd-dir-msg" style="color:#27ae60;margin-top:10px;display:none;"></div>
-    <div id="admin-accion"></div>
-  `
-};
-
-// Mostrar tabla de administradores
-async function mostrarTablaAdmins() {
-  const lista = await window.api.adminListar();
-  let html = `<table style="width:100%;font-size:15px;">
-    <tr><th>Usuario</th><th>Acciones</th></tr>
-    ${lista.map(a => `
-      <tr>
-        <td>${a.usuario}</td>
-        <td>
-          <button onclick="mostrarEditarAdmin(${a.id})">Editar</button>
-          <button onclick="mostrarEliminarAdmin(${a.id})">Eliminar</button>
-        </td>
-      </tr>
-    `).join('')}
-  </table>`;
-  const tablaAdmins = document.getElementById('tabla-admins');
-if (tablaAdmins) {
-  tablaAdmins.innerHTML = html;
-}
-}
-
-// Mostrar formulario para agregar administrador
-function mostrarAgregarAdmin() {
-  adminContenido.querySelector('#admin-accion').innerHTML = `
-    <h3>Agregar administrador</h3>
-    <form id="form-agregar-admin">
-      <input type="text" id="nuevo-admin-usuario" placeholder="Usuario" required style="margin-bottom:8px;">
-      <input type="password" id="nuevo-admin-password" placeholder="Contraseña" required style="margin-bottom:8px;">
-      <button type="submit">Agregar</button>
-    </form>
-    <div id="agregar-admin-error" style="color:#ff7675;margin-top:10px;display:none;"></div>
-  `;
-  adminContenido.querySelector('#form-agregar-admin').onsubmit = async (e) => {
-    e.preventDefault();
-    const usuario = document.getElementById('nuevo-admin-usuario').value.trim();
-    const password = document.getElementById('nuevo-admin-password').value;
-    mostrarConfirmacion('¿Seguro que quieres agregar este administrador?', async () => {
-      const res = await window.api.adminAgregar(usuario, password);
-      if (res.ok) {
-        cargarVistaUsuarios();
-      } else {
-        document.getElementById('agregar-admin-error').textContent = res.error;
-        document.getElementById('agregar-admin-error').style.display = 'block';
-      }
-    });
-  };
-}
-
-// Mostrar formulario para editar el usuario actual
-function mostrarEditarAdminActual() {
-  adminContenido.querySelector('#admin-accion').innerHTML = `
-    <h3>Editar usuario actual</h3>
-    <form id="form-editar-admin">
-      <input type="text" id="nuevo-usuario" value="${adminActual.usuario}" placeholder="Nuevo usuario" required style="margin-bottom:8px;">
-      <input type="password" id="nueva-password" placeholder="Nueva contraseña" required style="margin-bottom:8px;">
-      <button type="submit">Guardar cambios</button>
-    </form>
-    <div id="editar-admin-error" style="color:#ff7675;margin-top:10px;display:none;"></div>
-  `;
-  adminContenido.querySelector('#form-editar-admin').onsubmit = async (e) => {
-    e.preventDefault();
-    const nuevoUsuario = document.getElementById('nuevo-usuario').value.trim();
-    const nuevaPassword = document.getElementById('nueva-password').value;
-    mostrarConfirmacion('¿Seguro que quieres guardar los cambios?', async () => {
-      const res = await window.api.adminEditar(adminActual.id, nuevoUsuario, nuevaPassword);
-      if (res.ok) {
-        adminActual.usuario = nuevoUsuario;
-        cargarVistaUsuarios();
-      } else {
-        document.getElementById('editar-admin-error').textContent = res.error;
-        document.getElementById('editar-admin-error').style.display = 'block';
-      }
-    });
-  };
-}
-
-// Mostrar formulario para eliminar administrador
-async function mostrarEliminarAdmin() {
-  const lista = await window.api.adminListar();
-  let opciones = lista.map(a => `<option value="${a.id}">${a.usuario}</option>`).join('');
-  adminContenido.querySelector('#admin-accion').innerHTML = `
-    <h3>Eliminar administrador</h3>
-    <form id="form-eliminar-admin">
-      <select id="admin-a-eliminar">${opciones}</select>
-      <button type="submit" style="margin-left:8px;">Eliminar</button>
-    </form>
-    <div id="eliminar-admin-error" style="color:#ff7675;margin-top:10px;display:none;"></div>
-  `;
-  adminContenido.querySelector('#form-eliminar-admin').onsubmit = async (e) => {
-    e.preventDefault();
-    const id = document.getElementById('admin-a-eliminar').value;
-    mostrarConfirmacion('¿Seguro que quieres eliminar este administrador?', async () => {
-      const res = await window.api.adminEliminar(id);
-      if (res.ok) {
-        cargarVistaUsuarios();
-      } else {
-        document.getElementById('eliminar-admin-error').textContent = res.error;
-        document.getElementById('eliminar-admin-error').style.display = 'block';
-      }
-    });
-  };
-}
-
-// ==============================
-// 9. 🗂️ BASE DE DATOS Y DIRECTORIO
-// ==============================
-
-async function cargarVistaBDyDirectorio() {
-  // Obtén el directorio actual (puedes guardar la última carpeta seleccionada en localStorage)
-  let carpetaSeleccionada = localStorage.getItem('carpetaSeleccionada') || '';
-  let html = `
-    <h2>Base de datos y directorio</h2>
-    <div style="margin-bottom:18px;">
-      <strong>Directorio de carpetas:</strong>
-      <div style="margin:8px 0;">
-        <span id="directorio-actual">${carpetaSeleccionada ? carpetaSeleccionada : 'No seleccionado'}</span>
-        <button id="btn-seleccionar-carpeta" style="margin-left:12px;">Seleccionar carpeta</button>
-      </div>
-    </div>
-    <div style="margin-bottom:18px;">
-      <strong>Editar metadatos</strong>
-      <div style="margin:8px 0;">
-        <button id="btn-editar-metadatos">Editar metadatos de videos</button>
-      </div>
-    </div>
-    <div style="margin-bottom:18px;">
-      <strong>Actualizar Base de datos</strong>
-      <div style="margin:8px 0;">
-        <button id="btn-actualizar-base">Actualizar base de datos</button>
-      </div>
-    </div>
-    <div id="bd-dir-msg" style="color:#27ae60;margin-top:10px;display:none;"></div>
-    <div id="admin-accion"></div>
-  `;
-  adminContenido.innerHTML = html;
-
-  // Seleccionar carpeta
-  document.getElementById('btn-seleccionar-carpeta').onclick = async () => {
-    const resultado = await window.api.seleccionarCarpeta();
-    if (resultado && resultado.ruta) {
-      localStorage.setItem('carpetaSeleccionada', resultado.ruta);
-      document.getElementById('directorio-actual').textContent = resultado.ruta;
-      mostrarPopup('Directorio actualizado.');
-    }
-  };
-
-  // Actualizar base de datos
-  document.getElementById('btn-actualizar-base').onclick = async () => {
-    const carpeta = localStorage.getItem('carpetaSeleccionada');
-    if (!carpeta) {
-      mostrarPopup('Selecciona primero un directorio.');
-      return;
-    }
-    const resultado = await window.api.actualizarBase(carpeta);
-    if (resultado && resultado.length) {
-      videosOriginales = resultado;
-      construirFiltros(videosOriginales);
-      mostrarVideos(videosOriginales);
-      mostrarPopup('Base de datos actualizada.');
-    } else {
-      mostrarPopup('No se pudo actualizar la base de datos.', 'error');
-    }
-  };
-
-  // Editar metadatos 
-  document.getElementById('btn-editar-metadatos').onclick = mostrarEditorMetadatos;
+  cargarVistaAdmin(seccion);
 }
 
 async function mostrarEditorMetadatos() {
@@ -1149,7 +1016,7 @@ document.getElementById('btn-cerrar-metadatos').onclick = () => {
 
 
 // ==============================
-// 10. 🪟 UTILIDADES Y POPUPS
+// 9. 🪟 UTILIDADES Y POPUPS
 // ==============================
 
 function mostrarConfirmacion(mensaje, onConfirm, onCancel) {
