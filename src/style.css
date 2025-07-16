@@ -60,7 +60,7 @@ body.sidebar-expanded .main-content {
 
 .main-content {
   margin-left: 60px;
-  padding-top: 70px;
+  padding-top: 30px;
   transition: margin-left 0.2s;
 }
 
@@ -68,9 +68,7 @@ body.sidebar-expanded .main-content {
 .banner {
     position: fixed;
     top: 5px;
-    left: 50%;
-    transform: translateX(-50%);
-    /* width: 50%; */
+    left: 10%;
     background: #660e6000;
     border-radius: 12px;
     z-index: 100;
@@ -78,7 +76,7 @@ body.sidebar-expanded .main-content {
     height: 80px;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: anchor-center;
     box-shadow: inset 0px 1px 10px 0px rgb(102 14 96 / 0%), inset 0px -20px 20px 9px rgba(0, 0, 0, 0.2);
 }
 
@@ -104,19 +102,21 @@ body.sidebar-expanded .main-content {
 /* Sidebar lateral */
 /* Agrupar íconos por secciones */
 .sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 60px;
-  height: 100vh;
-  background: var(--color-sidebar);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between; /* distribuye espacio entre top y bottom */
-  align-items: center;
-  z-index: 101;
-  transition: width 0.2s;
-  overflow: hidden;
+    position: fixed;
+    border-radius: 15px;
+    top: 96px;
+    left: 5px;
+    width: 70px;
+    height: 87vh;
+    background: var(--color-sidebar);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 101;
+    transition: width 0.2s;
+    overflow: hidden;
+    flex-wrap: nowrap;
 }
 
 .sidebar:hover {
@@ -133,7 +133,7 @@ body.sidebar-expanded .main-content {
 }
 
 .sidebar .top-icons {
-  margin-top: 80px;
+  margin-top: 15px;
 }
 
 .sidebar .bottom-icons {
@@ -437,12 +437,11 @@ body.sidebar-expanded .main-content {
 }
 
 .mini-controls button {
-  color: var(--color-boton);
+  color: var(--color-fondo);
   cursor: pointer;
   border: 3px solid;
   padding: 0.25em 0.5em;
-  box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px;
-  position: relative;
+  box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px;  position: relative;
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
@@ -512,20 +511,18 @@ body.sidebar-expanded .main-content {
 }
 
 .fila-botones button {
-  background: none;
-  color: var(--color-boton);
+  cursor: pointer;
   border: 3px solid;
   padding: 0.25em 0.5em;
-  box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px;
-  position: relative;
+  box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px;  position: relative;
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
-  cursor: pointer;
+  border-radius: 5px;
 }
 
 .fila-botones button:hover {
-  color: var(--color-boton-hover);
+  background-color: var(--color-boton-hover);
 }
 
 .fila-botones button:active {
@@ -709,6 +706,195 @@ body.sidebar-expanded .main-content {
   background: var(--color-boton-hover);
 }
 
+/* === Popup de Administradores === */
+.popup-admin {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  border-radius: 12px;
+  box-shadow: 0 4px 32px #000a;
+  z-index: 10001;
+  min-width: 520px;
+  min-height: 320px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.admin-layout {
+  display: flex;
+  height: 100%;
+}
+
+.admin-sidebar {
+  background: var(--color-sidebar);
+  padding: 24px 8px;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.admin-icono {
+  background: none;
+  border: none;
+  color: var(--color-boton);
+  font-size: 28px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.admin-icono:hover {
+  background: var(--color-boton-hover);
+  border-radius: 8px;
+  color: var(--color-acento);
+}
+
+.admin-icono.activo {
+  background: var(--color-acento);
+  border-radius: 8px;
+  color: var(--color-boton-hover);
+}
+
+.admin-contenido {
+  flex: 1;
+  padding: 20px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+/* Título */
+.admin-titulo {
+  font-size: 20px;
+  font-weight: bold;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-borde);
+  margin-bottom: 12px;
+}
+
+/* Secciones */
+.admin-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #2c2c2c;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--color-borde);
+  flex-wrap: wrap;
+}
+
+.admin-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+}
+/* Contenedor general de acción */
+#admin-accion {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Encabezados de formularios */
+#admin-accion h3 {
+  font-size: 17px;
+  margin-bottom: 6px;
+  color: var(--color-texto);
+}
+
+/* Formularios */
+#admin-accion form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #2c2c2c;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--color-borde);
+}
+/* Tabla de administradores */
+#tabla-admins table {
+  width: 100%;
+  font-size: 15px;
+  border-collapse: collapse;
+}
+
+#tabla-admins th,
+#tabla-admins td {
+  padding: 8px;
+  border-bottom: 1px solid var(--color-borde);
+  text-align: left;
+}
+
+#tabla-admins td button {
+  margin-right: 6px;
+}
+
+#tabla-admins th,
+#tabla-admins td {
+  padding: 8px;
+  border-bottom: 1px solid var(--color-borde);
+  text-align: left;
+}
+#admin-accion input,
+#admin-accion select {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--color-borde);
+  font-size: 14px;
+  background: #1e1e1e;
+  color: var(--color-texto);
+}
+/* Botones */
+#admin-accion button[type="submit"],
+#tabla-admins button {
+  background: var(--color-boton);
+  color: #000;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 14px;
+}
+
+#admin-accion button[type="submit"]:hover,
+#tabla-admins button:hover {
+  background: var(--color-boton-hover);
+}
+
+/* Errores */
+.admin-error {
+  color: #ff7675;
+  font-size: 13px;
+  display: none;
+}
+
+/* Botón cerrar */
+.btn-cerrar-admin {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--color-boton);
+  font-size: 22px;
+  cursor: pointer;
+}
+.btn-cerrar-admin:hover {
+  background: var(--color-boton-hover);
+}
+
 /*Mostrar popup*/
 /* Animación para el popup */
 @keyframes popup-anim-in {
@@ -756,6 +942,3 @@ body.sidebar-expanded .main-content {
 .popup-salida {
   animation: popup-anim-out 0.4s ease forwards;
 }
-
-
-

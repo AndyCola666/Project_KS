@@ -676,49 +676,42 @@ async function cargarVistaAdmin(seccion) {
   let html = '';
 
   if (seccion === 'usuarios') {
-    html += `
-      <h2>Administradores</h2>
-      <div style="margin-bottom:18px;">
-        Sesión iniciada como <strong>${adminActual.usuario}</strong>
-        <button id="btn-editar-admin-actual" style="margin-left:12px;">Editar usuario</button>
-      </div>
-      <div style="margin-bottom:18px;">
-        <button id="btn-ver-admins">Ver administradores</button>
-        <button id="btn-agregar-admin" style="margin-left:8px;">Agregar administrador</button>
-        <button id="btn-eliminar-admin" style="margin-left:8px;">Eliminar administrador</button>
-      </div>
-      <div id="admin-accion"></div>
-      <div id="tabla-admins" style="margin-top:18px;"></div>
-    `;
-  }
+  html += `
+    <h2 class="admin-titulo">Administradores</h2>
+    <div class="admin-item">
+      <span>Sesión iniciada como <strong>${adminActual.usuario}</strong></span>
+      <button id="btn-editar-admin-actual">Editar usuario</button>
+    </div>
+    <div class="admin-item">
+      <button id="btn-ver-admins">Ver administradores</button>
+      <button id="btn-agregar-admin">Agregar administrador</button>
+      <button id="btn-eliminar-admin">Eliminar administrador</button>
+    </div>
+    <div id="admin-accion"></div>
+    <div id="tabla-admins"></div>
+  `;
+}
 
-  if (seccion === 'bd') {
-    const carpetaSeleccionada = localStorage.getItem('carpetaSeleccionada') || '';
-    html += `
-      <h2>Base de datos y directorio</h2>
-      <div style="margin-bottom:18px;">
-        <strong>Directorio de carpetas:</strong>
-        <div style="margin:8px 0;">
-          <span id="directorio-actual">${carpetaSeleccionada || 'No seleccionado'}</span>
-          <button id="btn-seleccionar-carpeta" style="margin-left:12px;">Seleccionar carpeta</button>
-        </div>
-      </div>
-      <div style="margin-bottom:18px;">
-        <strong>Editar metadatos</strong>
-        <div style="margin:8px 0;">
-          <button id="btn-editar-metadatos">Editar metadatos de videos</button>
-        </div>
-      </div>
-      <div style="margin-bottom:18px;">
-        <strong>Actualizar Base de datos</strong>
-        <div style="margin:8px 0;">
-          <button id="btn-actualizar-base">Actualizar base de datos</button>
-        </div>
-      </div>
-      <div id="bd-dir-msg" style="color:#27ae60;margin-top:10px;display:none;"></div>
-      <div id="admin-accion"></div>
-    `;
-  }
+if (seccion === 'bd') {
+  const carpetaSeleccionada = localStorage.getItem('carpetaSeleccionada') || '';
+  html += `
+    <h2 class="admin-titulo">Base de datos y directorio</h2>
+    <div class="admin-item">
+      <span><strong>Directorio de carpetas:</strong> <span id="directorio-actual">${carpetaSeleccionada || 'No seleccionado'}</span></span>
+      <button id="btn-seleccionar-carpeta">Seleccionar carpeta</button>
+    </div>
+    <div class="admin-item">
+      <span><strong>Editar metadatos:</strong></span>
+      <button id="btn-editar-metadatos">Editar metadatos de videos</button>
+    </div>
+    <div class="admin-item">
+      <span><strong>Actualizar base de datos:</strong></span>
+      <button id="btn-actualizar-base">Actualizar base de datos</button>
+    </div>
+    <div id="bd-dir-msg" style="color:#27ae60; display:none;"></div>
+    <div id="admin-accion"></div>
+  `;
+}
 
   adminContenido.innerHTML = html;
   // Activar lógica según sección
@@ -759,14 +752,16 @@ async function cargarVistaAdmin(seccion) {
 }
 
 function mostrarEditarAdminActual() {
+const tablaAdmins = document.getElementById('tabla-admins');
+if (tablaAdmins) tablaAdmins.innerHTML = '';
   adminContenido.querySelector('#admin-accion').innerHTML = `
     <h3>Editar usuario actual</h3>
     <form id="form-editar-admin">
-      <input type="text" id="nuevo-usuario" value="${adminActual.usuario}" placeholder="Nuevo usuario" required style="margin-bottom:8px;">
-      <input type="password" id="nueva-password" placeholder="Nueva contraseña" required style="margin-bottom:8px;">
+      <input type="text" id="nuevo-usuario" value="${adminActual.usuario}" placeholder="Nuevo usuario" required>
+      <input type="password" id="nueva-password" placeholder="Nueva contraseña" required>
       <button type="submit">Guardar cambios</button>
     </form>
-    <div id="editar-admin-error" style="color:#ff7675;margin-top:10px;display:none;"></div>
+    <div id="editar-admin-error" class="admin-error"></div>
   `;
   adminContenido.querySelector('#form-editar-admin').onsubmit = async (e) => {
     e.preventDefault();
@@ -788,7 +783,7 @@ function mostrarEditarAdminActual() {
 async function mostrarTablaAdmins() {
   const lista = await window.api.adminListar();
   let html = `
-    <table style="width:100%;font-size:15px;">
+    <table>
       <tr>
         <th>ID</th>
         <th>Usuario</th>
@@ -801,22 +796,26 @@ async function mostrarTablaAdmins() {
       `).join('')}
     </table>
   `;
-
+  const adminAccion = adminContenido.querySelector('#admin-accion');
+  if (adminAccion) adminAccion.innerHTML = '';
   const tablaAdmins = document.getElementById('tabla-admins');
   if (tablaAdmins) {
     tablaAdmins.innerHTML = html;
   }
 }
 
+
 function mostrarAgregarAdmin() {
+const tablaAdmins = document.getElementById('tabla-admins');
+if (tablaAdmins) tablaAdmins.innerHTML = '';
   adminContenido.querySelector('#admin-accion').innerHTML = `
     <h3>Agregar administrador</h3>
     <form id="form-agregar-admin">
-      <input type="text" id="nuevo-admin-usuario" placeholder="Usuario" required style="margin-bottom:8px;">
-      <input type="password" id="nuevo-admin-password" placeholder="Contraseña" required style="margin-bottom:8px;">
+      <input type="text" id="nuevo-admin-usuario" placeholder="Usuario" required>
+      <input type="password" id="nuevo-admin-password" placeholder="Contraseña" required>
       <button type="submit">Agregar</button>
     </form>
-    <div id="agregar-admin-error" style="color:#ff7675;margin-top:10px;display:none;"></div>
+    <div id="agregar-admin-error" class="admin-error"></div>
   `;
   adminContenido.querySelector('#form-agregar-admin').onsubmit = async (e) => {
     e.preventDefault();
@@ -835,15 +834,17 @@ function mostrarAgregarAdmin() {
 }
 
 async function mostrarEliminarAdmin() {
+const tablaAdmins = document.getElementById('tabla-admins');
+if (tablaAdmins) tablaAdmins.innerHTML = '';
   const lista = await window.api.adminListar();
   let opciones = lista.map(a => `<option value="${a.id}">${a.usuario}</option>`).join('');
   adminContenido.querySelector('#admin-accion').innerHTML = `
     <h3>Eliminar administrador</h3>
     <form id="form-eliminar-admin">
       <select id="admin-a-eliminar">${opciones}</select>
-      <button type="submit" style="margin-left:8px;">Eliminar</button>
+      <button type="submit">Eliminar</button>
     </form>
-    <div id="eliminar-admin-error" style="color:#ff7675;margin-top:10px;display:none;"></div>
+    <div id="eliminar-admin-error" class="admin-error"></div>
   `;
   adminContenido.querySelector('#form-eliminar-admin').onsubmit = async (e) => {
     e.preventDefault();
