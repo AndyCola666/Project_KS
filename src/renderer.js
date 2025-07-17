@@ -6,13 +6,14 @@ const grid = document.getElementById('grid-videos');
 const player = document.getElementById('player');
 const tituloVideo = document.getElementById('titulo-video');
 const inputBusqueda = document.getElementById('busqueda');
+const divSugerencias = document.getElementById('sugerencias-busqueda');
 const filtrosBarra = document.getElementById('filtros-barra');
 const filtrosBloque = document.getElementById('filtros-bloque');
 const filtrosGenero = document.getElementById('filtros-genero');
 const filtrosArtista = document.getElementById('filtros-artista');
 const filtrosDecada = document.getElementById('filtros-decada');
-const iconRegresarSidebar = document.getElementById('icon-regresar-sidebar');
 const btnToggleFiltros = document.getElementById('boton-toggle-filtros');
+const iconRegresarSidebar = document.getElementById('icon-regresar-sidebar');
 const btnActualizar = document.getElementById('boton-actualizar');
 const seccionReproductor = document.getElementById('vista-reproductor');
 const recomendadosGrid = document.getElementById('grid-recomendados');
@@ -47,6 +48,8 @@ const overlayBloqueo = document.getElementById('overlay-bloqueo');
 const selectVista = document.getElementById('select-grid-vista');
 
 let videosOriginales = [];
+let sugerencias = [];
+let sugerenciaSeleccionada = -1;
 let carpetaSeleccionada = null;
 let videoActualRuta = null;
 let filaReproduccion = [];
@@ -57,6 +60,11 @@ let adminActual = null; // Guarda el usuario admin logueado
 // ==============================
 // 2. 🧩 FILTROS Y BÚSQUEDA
 // ==============================
+inputBusqueda.addEventListener('input', actualizarSugerencias);
+filtrosGenero.addEventListener('change', aplicarFiltros);
+filtrosArtista.addEventListener('change', aplicarFiltros);
+filtrosDecada.addEventListener('change', aplicarFiltros);
+
 iconBuscar.addEventListener('click', () => {
   if (grid.style.display !== 'grid') return;
   filtrosBarra.classList.toggle('visible');
@@ -99,7 +107,7 @@ function aplicarFiltros() {
   const artistaSel = filtrosArtista.value;
   const decadasSel = filtrosDecada.value;
 
-  const filtrados = videosOriginales.filter(video => {
+    const filtrados = videosOriginales.filter(video => {
     const coincideTexto = video.titulo.toLowerCase().includes(texto);
     const coincideGenero = !generoSel || video.genero === generoSel;
     const coincideArtista = !artistaSel || video.artista === artistaSel;
@@ -110,10 +118,100 @@ function aplicarFiltros() {
   mostrarVideos(filtrados);
 }
 
-inputBusqueda.addEventListener('input', aplicarFiltros);
-filtrosGenero.addEventListener('change', aplicarFiltros);
-filtrosArtista.addEventListener('change', aplicarFiltros);
-filtrosDecada.addEventListener('change', aplicarFiltros);
+function debounce(fn, delay) {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn(...args), delay);
+  };
+}
+
+inputBusqueda.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault(); // Para evitar que recargue o haga submit
+    aplicarFiltros();
+  }
+});
+
+//Filtrar títulos en base a la entrada actual
+function actualizarSugerencias() {
+  const texto = inputBusqueda.value.trim().toLowerCase();
+  divSugerencias.innerHTML = '';
+  sugerenciaSeleccionada = -1;
+
+  if (!texto) {
+    divSugerencias.style.display = 'none';
+    return;
+  }
+
+  sugerencias = videosOriginales
+    .map(v => v.titulo.replace(/\.[^/.]+$/, ""))
+    .filter(titulo => titulo.toLowerCase().includes(texto))
+    .slice(0, 8); // máximo 8 sugerencias
+
+  if (sugerencias.length === 0) {
+    divSugerencias.style.display = 'none';
+    return;
+  }
+
+  sugerencias.forEach((titulo, i) => {
+    const item = document.createElement('div');
+    item.textContent = titulo;
+    item.style.padding = '6px 12px';
+    item.style.cursor = 'pointer';
+
+    item.addEventListener('click', () => {
+      inputBusqueda.value = titulo;
+      divSugerencias.style.display = 'none';
+      aplicarFiltros(); // realizar búsqueda normal
+    });
+
+    divSugerencias.appendChild(item);
+  });
+
+  divSugerencias.style.display = 'block';
+}
+
+//Interacción teclado
+inputBusqueda.addEventListener('keydown', (e) => {
+  const items = divSugerencias.querySelectorAll('div');
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    sugerenciaSeleccionada = (sugerenciaSeleccionada + 1) % sugerencias.length;
+    actualizarEstilosSeleccion();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    sugerenciaSeleccionada = (sugerenciaSeleccionada - 1 + sugerencias.length) % sugerencias.length;
+    actualizarEstilosSeleccion();
+  } else if (e.key === 'Enter') {
+    if (sugerenciaSeleccionada >= 0) {
+      e.preventDefault();
+      inputBusqueda.value = sugerencias[sugerenciaSeleccionada];
+      divSugerencias.style.display = 'none';
+      aplicarFiltros();
+    }
+  }
+});
+
+function actualizarEstilosSeleccion() {
+  const items = divSugerencias.querySelectorAll('div');
+  items.forEach((item, idx) => {
+    item.style.background = (idx === sugerenciaSeleccionada) ? '#333' : '';
+  });
+}
+
+//Mostrar sugerencias al escribir
+inputBusqueda.addEventListener('input', () => {
+  actualizarSugerencias();
+});
+
+//Ocultar sugerencias al hacer clic fuera
+document.addEventListener('click', (e) => {
+  if (!divSugerencias.contains(e.target) && e.target !== inputBusqueda) {
+    divSugerencias.style.display = 'none';
+  }
+});
 
 // ==============================
 // 3. 🖼️ MOSTRAR VIDEOS Y GRID
@@ -184,8 +282,6 @@ function mostrarVideos(videos) {
 
     grid.appendChild(card);
   });
-// Al final de mostrarVistaReproductor() por ejemplo
-
 }
 
 //Función para aleatorizar el grid.
@@ -381,22 +477,22 @@ iconFila.addEventListener('click', () => {
     mostrarPopup('No hay canciones en la fila');
     return;
   }
-
+  overlayBloqueo.style.display = 'block';
   vistaFila.classList.toggle('visible');
-
-  if (vistaFila.classList.contains('visible')) {
-    mostrarVistaFila();
-  }
+  mostrarVistaFila();
 });
 
 btnCerrarFila.addEventListener('click', () => {
   vistaFila.classList.remove('visible');
+  overlayBloqueo.style.display = 'none';
 });
 
 btnReproducirFila.addEventListener('click', () => {
   indiceActualFila = 0;
   vistaFila.style.display = 'none';
   reproducirDesdeFila(indiceActualFila);
+  vistaFila.classList.remove('visible');
+  overlayBloqueo.style.display = 'none';
 });
 
 function reproducirDesdeFila(indice = 0) {

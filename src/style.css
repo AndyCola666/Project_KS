@@ -188,20 +188,50 @@ body.sidebar-expanded .main-content {
   opacity: 1;
   pointer-events: auto;
 }
-.filtros-barra input,
+.filtros-barra input {
+  cursor: text;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 3px solid;
+  font-size: 16px;
+  width: 200px;
+  box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px;
+}
 .filtros-barra select {
   padding: 6px 10px;
   border-radius: 4px;
-  border: 1px solid var(--color-borde);
+  cursor: pointer;
+  border: 3px solid;
+  border-radius: 5px;
+  padding: 0.25em 0.5em;
+  box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
 }
 .filtros-barra button {
-  background: none;
-  border: none;
+  margin-left: 10px;
+  padding: 6px 10px;
+  font-size: 16px;
   cursor: pointer;
-  color: var(--color-boton);
-  font-size: 22px;
+  border: 3px solid;
+  border-radius: 5px;
+  padding: 0.25em 0.5em;
+  box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
 }
-
+.filtros-barra button:hover {
+  background-color: var(--color-boton-hover);
+}
+.filtros-barra button:active {
+  box-shadow: 0px 0px 0px 0px;
+  top: 5px;
+  left: 5px;
+}
 .filtros-bloque {
   display: flex;
   gap: 10px;
@@ -218,6 +248,31 @@ body.sidebar-expanded .main-content {
 }
 .filtros-grupo label {
   margin-bottom: 4px;
+}
+
+.sugerencias-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #1c1c1c;
+  border: 1px solid #444;
+  border-top: none;
+  z-index: 1000;
+  max-height: 240px;
+  overflow-y: auto;
+  display: none;
+}
+
+.sugerencias-dropdown div {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.sugerencias-dropdown div:hover,
+.sugerencias-dropdown .seleccionada {
+  background: #333;
 }
 
 /* Grid de videos */
@@ -373,18 +428,18 @@ body.sidebar-expanded .main-content {
 }
 
 #btn-siguiente-fila {
-  margin-left: 10px;
-  padding: 6px 10px;
-  font-size: 16px;
+  width: 15%;
+  margin-top: 10px;
+  font-size: 15px;
   cursor: pointer;
   border: 3px solid;
+  border-radius: 5px;
   padding: 0.25em 0.5em;
   box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px;
   position: relative;
-  user-select: none;
-  -webkit-user-select: none;
   touch-action: manipulation;
 }
+
 #btn-siguiente-fila:hover {
   background-color: var(--color-boton-hover);
 }
@@ -468,7 +523,7 @@ body.sidebar-expanded .main-content {
   position: fixed;
   top: 50%;
   left: 50%;
-  z-index: 100;
+  z-index: 900;
   background: #2c2c2c8e;
   border: 2px solid var(--color-borde);
   border-radius: 10px;

@@ -9,7 +9,7 @@
 </head>
 <body>
 
-  <div id="overlay-bloqueo" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:9000;"></div>
+  <div id="overlay-bloqueo" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:800;"></div>
   <!-- Banner superior fijo -->
   <header class="banner">
   <img src="assets/logo-ks.png" alt="">
@@ -45,37 +45,37 @@
   <!-- Contenido principal -->
 <main class="main-content">
     <!-- Barra de búsqueda y filtros (aparecen arriba del grid) -->
-<div class="filtros-barra" id="filtros-barra">
-  <input type="text" id="busqueda" placeholder="Buscar video por nombre...">
-
-  <button id="boton-toggle-filtros" title="Mostrar filtros">
-    <span class="material-icons">tune</span> Filtros
-  </button>
-
-  <div class="filtros-bloque" id="filtros-bloque" style="display: none;">
-    <div class="filtros-grupo">
-      <label for="filtros-genero">Género</label>
-      <select id="filtros-genero">
-        <option value="">Todos</option>
-      </select>
+    <div class="filtros-barra" id="filtros-barra">
+      <input type="text" id="busqueda" placeholder="Buscar video por nombre...">
+      <button id="boton-toggle-filtros" title="Mostrar filtros">
+        <span class="material-icons">tune</span>
+      </button>
+      
+      <div class="filtros-bloque" id="filtros-bloque" style="display: none;">
+        <div class="filtros-grupo">
+          <label for="filtros-genero">Género</label>
+          <select id="filtros-genero">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        
+        <div class="filtros-grupo">
+          <label for="filtros-artista">Artista</label>
+          <select id="filtros-artista">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        
+        <div class="filtros-grupo">
+          <label for="filtros-decada">Década</label>
+          <select id="filtros-decada">
+            <option value="">Todos</option>
+          </select>
+        </div>
+      </div>
+      <div id="sugerencias-busqueda"></div>
     </div>
-
-    <div class="filtros-grupo">
-      <label for="filtros-artista">Artista</label>
-      <select id="filtros-artista">
-        <option value="">Todos</option>
-      </select>
-    </div>
-
-    <div class="filtros-grupo">
-      <label for="filtros-decada">Década</label>
-      <select id="filtros-decada">
-        <option value="">Todos</option>
-      </select>
-    </div>
-  </div>
-</div>
-
+    
     <!-- Grid de videos -->
     <div id="grid-videos" class="grid"></div>
 
