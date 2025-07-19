@@ -42,43 +42,56 @@
 </nav>
 
 
-  <!-- Contenido principal -->
+<!-- Contenido principal -->
 <main class="main-content">
-    <!-- Barra de búsqueda y filtros (aparecen arriba del grid) -->
-    <div class="filtros-barra" id="filtros-barra">
-      <input type="text" id="busqueda" placeholder="Buscar video por nombre...">
-      <button id="boton-toggle-filtros" title="Mostrar filtros">
-        <span class="material-icons">tune</span>
-      </button>
-      
-      <div class="filtros-bloque" id="filtros-bloque" style="display: none;">
-        <div class="filtros-grupo">
-          <label for="filtros-genero">Género</label>
-          <select id="filtros-genero">
-            <option value="">Todos</option>
-          </select>
-        </div>
-        
-        <div class="filtros-grupo">
-          <label for="filtros-artista">Artista</label>
-          <select id="filtros-artista">
-            <option value="">Todos</option>
-          </select>
-        </div>
-        
-        <div class="filtros-grupo">
-          <label for="filtros-decada">Década</label>
-          <select id="filtros-decada">
-            <option value="">Todos</option>
-          </select>
-        </div>
-      </div>
-      <div id="sugerencias-busqueda"></div>
+  <!-- Barra de búsqueda y filtros (aparecen arriba del grid) -->
+<div class="filtros-barra" id="filtros-barra">
+  <div class="input-wrapper">
+    <input type="text" id="busqueda" placeholder="Buscar video por nombre...">
+    <span id="boton-clear" class="clear-input"></span>
+  </div>
+
+  <!-- Botón de buscar -->
+  <button id="boton-buscar" class="boton-barra" title="Buscar">
+    <span class="material-icons">search</span>
+  </button>
+
+  <!-- Botón de filtros -->
+  <button id="boton-toggle-filtros" title="Mostrar filtros" class="boton-barra">
+    <span class="material-icons">tune</span>
+  </button>
+
+  <!-- Botón de reiniciar filtros -->
+  <button id="boton-reiniciar-filtros" title="Reiniciar filtros" class="boton-barra">
+    <span class="material-icons">restart_alt</span>
+  </button>
+
+  <div class="filtros-bloque" id="filtros-bloque" style="display: none;">
+    <div class="filtros-grupo">
+      <label for="filtros-genero">Género</label>
+      <select id="filtros-genero">
+        <option value="">Todos</option>
+      </select>
     </div>
-    
+    <div class="filtros-grupo">
+      <label for="filtros-artista">Artista</label>
+      <select id="filtros-artista">
+        <option value="">Todos</option>
+      </select>
+    </div>
+    <div class="filtros-grupo">
+      <label for="filtros-decada">Década</label>
+      <select id="filtros-decada">
+        <option value="">Todos</option>
+      </select>
+    </div>
+  </div>
+</div>
+    <!-- Sugerencias de búsqueda -->    
+  <div id="sugerencias-busqueda" class="sugerencias-dropdown"></div>
     <!-- Grid de videos -->
     <div id="grid-videos" class="grid"></div>
-
+    
 <div id="vista-fila" class="vista-fila">
   <div class="fila-header">
     <h2>Fila de reproducción</h2>

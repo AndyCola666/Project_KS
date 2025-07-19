@@ -75,6 +75,37 @@ btnToggleFiltros.addEventListener('click', () => {
   filtrosBloque.style.display = visible ? 'none' : 'flex';
 });
 
+// Mostrar / ocultar botón "X" en el input
+inputBusqueda.addEventListener('input', () => {
+  const clearBtn = document.getElementById('boton-clear');
+  clearBtn.style.display = inputBusqueda.value ? 'block' : 'none';
+});
+
+// Limpiar input al hacer clic en "X"
+document.getElementById('boton-clear').addEventListener('click', () => {
+  inputBusqueda.value = '';
+  document.getElementById('boton-clear').style.display = 'none';
+  aplicarFiltros();
+  divSugerencias.classList.remove('visible');
+});
+
+// Botón de búsqueda (igual que presionar Enter)
+document.getElementById('boton-buscar').addEventListener('click', () => {
+  divSugerencias.classList.remove('visible');
+  aplicarFiltros();
+});
+
+// Botón reiniciar filtros
+document.getElementById('boton-reiniciar-filtros').addEventListener('click', () => {
+  inputBusqueda.value = '';
+  filtrosGenero.value = '';
+  filtrosArtista.value = '';
+  filtrosDecada.value = '';
+  document.getElementById('boton-clear').style.display = 'none';
+  divSugerencias.classList.remove('visible');
+  aplicarFiltros();
+});
+
 function construirFiltros(videos) {
   const generos = new Set();
   const artistas = new Set();
@@ -133,6 +164,14 @@ inputBusqueda.addEventListener('keydown', (e) => {
   }
 });
 
+function posicionarSugerencias() {
+  if (!divSugerencias.classList.contains('visible')) return;
+
+  const inputRect = inputBusqueda.getBoundingClientRect();
+  divSugerencias.style.top = `${inputRect.bottom + window.scrollY}px`;
+  divSugerencias.style.left = `${inputRect.left + window.scrollX}px`;
+  divSugerencias.style.width = `${inputRect.width}px`;
+}
 //Filtrar títulos en base a la entrada actual
 function actualizarSugerencias() {
   const texto = inputBusqueda.value.trim().toLowerCase();
@@ -140,41 +179,41 @@ function actualizarSugerencias() {
   sugerenciaSeleccionada = -1;
 
   if (!texto) {
-    divSugerencias.style.display = 'none';
+    divSugerencias.classList.remove('visible');
     return;
   }
 
   sugerencias = videosOriginales
-    .map(v => v.titulo.replace(/\.[^/.]+$/, ""))
+    .map(v => v.titulo)
     .filter(titulo => titulo.toLowerCase().includes(texto))
-    .slice(0, 8); // máximo 8 sugerencias
+    .slice(0, 7);
 
   if (sugerencias.length === 0) {
-    divSugerencias.style.display = 'none';
+    divSugerencias.classList.remove('visible');
     return;
   }
+  posicionarSugerencias();
 
   sugerencias.forEach((titulo, i) => {
     const item = document.createElement('div');
     item.textContent = titulo;
-    item.style.padding = '6px 12px';
-    item.style.cursor = 'pointer';
+    item.classList.add('sugerencia-item');
 
     item.addEventListener('click', () => {
       inputBusqueda.value = titulo;
-      divSugerencias.style.display = 'none';
-      aplicarFiltros(); // realizar búsqueda normal
+      divSugerencias.classList.remove('visible');
+      aplicarFiltros();
     });
 
     divSugerencias.appendChild(item);
   });
 
-  divSugerencias.style.display = 'block';
+  divSugerencias.classList.add('visible');
 }
 
 //Interacción teclado
 inputBusqueda.addEventListener('keydown', (e) => {
-  const items = divSugerencias.querySelectorAll('div');
+  const items = divSugerencias.querySelectorAll('.sugerencia-item');
 
   if (e.key === 'ArrowDown') {
     e.preventDefault();
@@ -188,16 +227,19 @@ inputBusqueda.addEventListener('keydown', (e) => {
     if (sugerenciaSeleccionada >= 0) {
       e.preventDefault();
       inputBusqueda.value = sugerencias[sugerenciaSeleccionada];
-      divSugerencias.style.display = 'none';
+      divSugerencias.classList.remove('visible');
+      aplicarFiltros();
+    } else {
+      divSugerencias.classList.remove('visible');
       aplicarFiltros();
     }
   }
 });
 
 function actualizarEstilosSeleccion() {
-  const items = divSugerencias.querySelectorAll('div');
+  const items = divSugerencias.querySelectorAll('.sugerencia-item');
   items.forEach((item, idx) => {
-    item.style.background = (idx === sugerenciaSeleccionada) ? '#333' : '';
+    item.classList.toggle('seleccionada', idx === sugerenciaSeleccionada);
   });
 }
 
@@ -209,9 +251,11 @@ inputBusqueda.addEventListener('input', () => {
 //Ocultar sugerencias al hacer clic fuera
 document.addEventListener('click', (e) => {
   if (!divSugerencias.contains(e.target) && e.target !== inputBusqueda) {
-    divSugerencias.style.display = 'none';
+    divSugerencias.classList.remove('visible');
   }
 });
+
+  window.addEventListener('scroll', posicionarSugerencias);
 
 // ==============================
 // 3. 🖼️ MOSTRAR VIDEOS Y GRID

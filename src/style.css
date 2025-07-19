@@ -158,58 +158,68 @@ body.sidebar-expanded .main-content {
 
 
 /* búsqueda y filtros */
-#busqueda {
-  margin: 20px auto;
-  padding: 10px;
-  width: 60%;
-  font-size: 16px;
-}
-
+/* Contenedor principal de la barra de filtros */
 .filtros-barra {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  background: rgba(0, 0, 0, 0);
-  padding: 10px 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   position: sticky;
   top: 70px;
   z-index: 99;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 10px 20px;
+  background: rgba(0, 0, 0, 0);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   max-height: 0;
   overflow: hidden;
   opacity: 0;
-  transition: max-height 0.4s ease, opacity 0.4s ease;
   pointer-events: none;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
 }
+
 .filtros-barra.visible {
-  max-height: 500px; /* Ajusta según la altura máxima que pueda tener */
+  max-height: 500px;
   opacity: 1;
   pointer-events: auto;
 }
-.filtros-barra input {
-  cursor: text;
-  padding: 6px 10px;
-  border-radius: 4px;
-  border: 3px solid;
-  font-size: 16px;
-  width: 200px;
-  box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px;
-}
-.filtros-barra select {
-  padding: 6px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  border: 3px solid;
-  border-radius: 5px;
-  padding: 0.25em 0.5em;
-  box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px;
+
+/* Contenedor del input y botón "x" */
+.buscador-wrapper {
   position: relative;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
+  display: flex;
+  align-items: center;
 }
+
+/* Input */
+#busqueda {
+  padding: 10px 36px 10px 10px;
+  width: 240px;
+  font-size: 16px;
+  border-radius: 4px;
+  border: 3px solid;
+  box-shadow: 1px 1px 0, 2px 2px 0, 3px 3px 0, 4px 4px 0, 5px 5px 0;
+  cursor: text;
+}
+
+/* Botón "x" dentro del input */
+.boton-borrar {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  display: none;
+}
+
+.boton-borrar.visible {
+  display: block;
+}
+
+/* Botones de lupa, reiniciar filtros y filtros */
 .filtros-barra button {
   margin-left: 10px;
   padding: 6px 10px;
@@ -224,14 +234,18 @@ body.sidebar-expanded .main-content {
   -webkit-user-select: none;
   touch-action: manipulation;
 }
+
 .filtros-barra button:hover {
   background-color: var(--color-boton-hover);
 }
+
 .filtros-barra button:active {
   box-shadow: 0px 0px 0px 0px;
   top: 5px;
   left: 5px;
 }
+
+/* Grupo de filtros desplegables */
 .filtros-bloque {
   display: flex;
   gap: 10px;
@@ -242,36 +256,50 @@ body.sidebar-expanded .main-content {
 .filtros-grupo {
   display: flex;
   flex-direction: column;
-  align-items: start;
+  align-items: flex-start;
   font-size: 14px;
   color: var(--color-boton);
 }
+
 .filtros-grupo label {
   margin-bottom: 4px;
 }
 
+.filtros-barra select {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 3px solid;
+  box-shadow: 1px 1px 0, 2px 2px 0, 3px 3px 0, 4px 4px 0, 5px 5px 0;
+  cursor: pointer;
+}
+
 .sugerencias-dropdown {
   position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: #1c1c1c;
-  border: 1px solid #444;
-  border-top: none;
+  background: #232323;
+  color: #fff;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 16px #000a;
   z-index: 1000;
-  max-height: 240px;
-  overflow-y: auto;
   display: none;
+  max-height: 260px;
+  overflow-y: auto;
+  width: 60%; /* Tamaño del input */
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.sugerencias-dropdown div {
-  padding: 8px 12px;
+.sugerencias-dropdown.visible {
+  display: block;
+}
+
+.sugerencia-item {
+  padding: 10px 16px;
   cursor: pointer;
-  transition: background 0.2s;
 }
 
-.sugerencias-dropdown div:hover,
-.sugerencias-dropdown .seleccionada {
+.sugerencia-item:hover,
+.sugerencia-item.seleccionada {
   background: #333;
 }
 
