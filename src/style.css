@@ -164,6 +164,7 @@ body.sidebar-expanded .main-content {
   top: 70px;
   z-index: 99;
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: 12px;
   margin-bottom: 20px;
