@@ -17,6 +17,7 @@ const iconRegresarSidebar = document.getElementById('icon-regresar-sidebar');
 const btnActualizar = document.getElementById('boton-actualizar');
 const seccionReproductor = document.getElementById('vista-reproductor');
 const recomendadosGrid = document.getElementById('grid-recomendados');
+const botonMas = document.getElementById('boton-mas');
 const iconBuscar = document.getElementById('icon-buscar');
 const iconFila = document.getElementById('icon-fila');
 const vistaFila = document.getElementById('vista-fila');
@@ -56,6 +57,9 @@ let filaReproduccion = [];
 let indexActualFila = 0;
 let modoMiniPlayer = false;
 let adminActual = null; // Guarda el usuario admin logueado
+let indicePagina = 0;
+const tamanoPagina = 5;
+let resultadosFiltrados = [];
 
 // ==============================
 // 2. 🧩 FILTROS Y BÚSQUEDA
@@ -133,6 +137,7 @@ function poblarSelect(select, valores) {
 }
 
 function aplicarFiltros() {
+  indicePagina = 0;
   const texto = inputBusqueda.value.toLowerCase();
   const generoSel = filtrosGenero.value;
   const artistaSel = filtrosArtista.value;
@@ -146,7 +151,10 @@ function aplicarFiltros() {
     return coincideTexto && coincideGenero && coincideArtista && coincideDecada;
   });
 
-  mostrarVideos(filtrados);
+  resultadosFiltrados = filtrados;
+  indicePagina = 0;
+  mostrarVideos(resultadosFiltrados, true);
+
 }
 
 function debounce(fn, delay) {
@@ -260,20 +268,25 @@ document.addEventListener('click', (e) => {
 // ==============================
 // 3. 🖼️ MOSTRAR VIDEOS Y GRID
 // ==============================
-function mostrarVideos(videos) {
-  grid.innerHTML = '';
+function mostrarVideos(videos, reemplazar = true) {
   seccionReproductor.style.display = 'none';
   grid.style.display = 'grid';
 
   const vista = localStorage.getItem('vistaGrid') || 'normal';
   grid.className = 'grid';
-  if (vista === 'mosaico') {
-    grid.classList.add('mosaico');
-  }
+  if (vista === 'mosaico') grid.classList.add('mosaico');
 
   const mostrarInfo = localStorage.getItem('mostrarInfoCanciones') !== 'false';
 
-  videos.forEach(video => {
+  const inicio = indicePagina * tamanoPagina;
+  const fin = inicio + tamanoPagina;
+  const pagina = videos.slice(inicio, fin);
+
+  if (reemplazar) {
+    grid.innerHTML = '';
+  }
+
+  pagina.forEach(video => {
     const card = document.createElement('div');
     card.classList.add('card');
 
@@ -291,14 +304,10 @@ function mostrarVideos(videos) {
       const artista = document.createElement('p');
       artista.textContent = `Artista: ${video.artista || 'Desconocido'}`;
 
-      const album = document.createElement('p');
-      album.textContent = `Álbum: ${video.album || 'Desconocido'}`;
-
       const genero = document.createElement('p');
       genero.textContent = `Género: ${video.genero || 'Desconocido'}`;
 
       card.appendChild(artista);
-      card.appendChild(album);
       card.appendChild(genero);
     }
 
@@ -317,8 +326,8 @@ function mostrarVideos(videos) {
       iconRegresarSidebar.style.display = 'block';
       tituloVideo.textContent = video.titulo.replace(/\.[^/.]+$/, "");
       document.getElementById("video-principal").scrollIntoView({ behavior: "smooth", block: "start" });
-
     };
+
     card.addEventListener('contextmenu', e => {
       e.preventDefault();
       mostrarMenuContextual(e.pageX, e.pageY, video);
@@ -326,7 +335,21 @@ function mostrarVideos(videos) {
 
     grid.appendChild(card);
   });
+
+  mostrarBotonCargarMas(videos.length);
 }
+
+
+function mostrarBotonCargarMas(totalVideos) {
+  const hayMasPaginas = (indicePagina + 1) * tamanoPagina < totalVideos;
+  botonMas.style.display = 'inline-block';
+}
+
+botonMas.addEventListener('click', () => {
+  const aleatorios = mezclarArray([...resultadosFiltrados]).slice(0, tamanoPagina);
+  mostrarVideos(aleatorios, true);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 
 //Función para aleatorizar el grid.
 function mezclarArray(array) {
@@ -606,7 +629,6 @@ function llenarRecomendados(videoBase) {
       videoPrincipal.appendChild(player);
       seccionReproductor.style.display = 'block';
       grid.style.display = 'none';
-      filtrosBarra.style.display = 'none';
       player.src = video.ruta;
       player.play();
       videoActualRuta = video.ruta;
@@ -796,6 +818,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       construirFiltros(videosOriginales);
       // Mezcla los videos antes de mostrarlos
       const videosMezclados = mezclarArray([...videosOriginales]);
+      resultadosFiltrados = videosMezclados; // <-- Agrega esta línea
       mostrarVideos(videosMezclados);
     }
   }
