@@ -50,7 +50,7 @@ const selectVista = document.getElementById('select-grid-vista');
 
 let videosOriginales = [];
 let sugerencias = [];
-let sugerenciaSeleccionada = -1;
+let sugerenciaSeleccionada = -1;  
 let carpetaSeleccionada = null;
 let videoActualRuta = null;
 let filaReproduccion = [];
@@ -58,7 +58,7 @@ let indexActualFila = 0;
 let modoMiniPlayer = false;
 let adminActual = null; // Guarda el usuario admin logueado
 let indicePagina = 0;
-const tamanoPagina = 5;
+const tamanoPagina = 15;
 let resultadosFiltrados = [];
 
 // ==============================
@@ -204,7 +204,7 @@ function actualizarSugerencias() {
 
   sugerencias.forEach((titulo, i) => {
     const item = document.createElement('div');
-    item.textContent = titulo;
+    item.textContent = titulo.replace(/\.[^/.]+$/, "");
     item.classList.add('sugerencia-item');
 
     item.addEventListener('click', () => {
@@ -317,6 +317,7 @@ function mostrarVideos(videos, reemplazar = true) {
       videoPrincipal.appendChild(player);
       seccionReproductor.style.display = 'block';
       grid.style.display = 'none';
+      botonMas.style.display = 'none';
       filtrosBarra.classList.remove('visible');
       player.src = video.ruta;
       player.play();
@@ -444,6 +445,8 @@ miniExpand.addEventListener('click', () => {
   videoPrincipal.appendChild(player);
   seccionReproductor.style.display = 'block';
   grid.style.display = 'none';
+  botonMas.style.display = 'none';
+  filtrosBarra.classList.remove('visible');
   miniPlayer.style.display = 'none';
   modoMiniPlayer = false;
   iconRegresarSidebar.style.display = 'block';
@@ -604,19 +607,30 @@ function reproducirDesdeFila(indice = 0) {
 // ==============================
 function llenarRecomendados(videoBase) {
   recomendadosGrid.innerHTML = '';
-  const similares = videosOriginales.filter(v =>
-    v.ruta !== videoBase.ruta &&
-    (v.artista === videoBase.artista ||
-     v.genero === videoBase.genero ||
-     v.album === videoBase.album)
-  ).slice(0, 10);
 
-  similares.forEach(video => {
+  // Calcular puntuación por coincidencias
+  const candidatos = videosOriginales
+    .filter(v => v.ruta !== videoBase.ruta)
+    .map(v => {
+      let score = 0;
+      if (v.artista === videoBase.artista) score += 2;  // más peso a artista
+      if (v.genero === videoBase.genero) score += 1.5;
+      if (v.decada === videoBase.decada) score += 1;
+      return { ...v, score };
+    })
+    .filter(v => v.score > 0) // descartar totalmente irrelevantes
+    .sort((a, b) => b.score - a.score) // ordenar por puntuación descendente
+    .slice(0, 10); // tomar los 10 mejores
+
+  // Generar tarjetas
+  candidatos.forEach(video => {
     const card = document.createElement('div');
     card.classList.add('card');
 
     const img = document.createElement('img');
-    img.src = video.imagen ? `file://${video.imagen}` : 'https://via.placeholder.com/300x170/000000/ffffff?text=Video';
+    img.src = video.imagen
+      ? `file://${video.imagen}`
+      : 'https://via.placeholder.com/300x170/000000/ffffff?text=Video';
     img.alt = video.titulo;
 
     const titulo = document.createElement('h3');
@@ -634,9 +648,12 @@ function llenarRecomendados(videoBase) {
       videoActualRuta = video.ruta;
       tituloVideo.textContent = video.titulo.replace(/\.[^/.]+$/, "");
       llenarRecomendados(video);
-      document.getElementById("video-principal").scrollIntoView({ behavior: "smooth", block: "start" });
-
+      document.getElementById("video-principal").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
     };
+
     card.addEventListener('contextmenu', e => {
       e.preventDefault();
       mostrarMenuContextual(e.pageX, e.pageY, video);
@@ -645,6 +662,7 @@ function llenarRecomendados(videoBase) {
     recomendadosGrid.appendChild(card);
   });
 }
+
 
 function mostrarMenuContextual(x, y, video) {
   const menuExistente = document.getElementById('menu-contextual');
