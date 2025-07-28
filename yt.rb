@@ -1,5 +1,5 @@
 def descargar_video(url)
-  carpeta = "D:/descargasvid"
+  carpeta = "D:/pruebakaraoke/Artistas/Alejandra Guzman"
 
   unless Dir.exist?(carpeta)
     puts "La carpeta '#{carpeta}' no existe."
@@ -16,8 +16,8 @@ def descargar_video(url)
   puts "\nDescargando video en .mp4 (máx 720p o menor si no hay)..."
   puts "Guardando en: #{carpeta}"
   system(comando)
-end
 
+end
 #Consola 
 print "Introduce la URL del video de YouTube: "
 url = gets.chomp

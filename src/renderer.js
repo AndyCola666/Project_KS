@@ -58,7 +58,7 @@ let indexActualFila = 0;
 let modoMiniPlayer = false;
 let adminActual = null; // Guarda el usuario admin logueado
 let indicePagina = 0;
-const tamanoPagina = 15;
+const tamanoPagina = 32;
 let resultadosFiltrados = [];
 
 // ==============================
