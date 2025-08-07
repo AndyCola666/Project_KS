@@ -1,5 +1,5 @@
 def descargar_video(url)
-  carpeta = "D:/pruebakaraoke/Artistas/Hombres G"
+  carpeta = "D:/pruebakaraoke/Artistas/Roberto Carlos"
 
   unless Dir.exist?(carpeta)
     puts "La carpeta '#{carpeta}' no existe."
