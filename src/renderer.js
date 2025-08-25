@@ -58,8 +58,9 @@ let indexActualFila = 0;
 let modoMiniPlayer = false;
 let adminActual = null; // Guarda el usuario admin logueado
 let indicePagina = 0;
-const tamanoPagina = 32;
+const tamanoPagina = 60;
 let resultadosFiltrados = [];
+let resultadosAleatorios = [];
 
 // ==============================
 // 2. 🧩 FILTROS Y BÚSQUEDA
@@ -143,7 +144,7 @@ function aplicarFiltros() {
   const artistaSel = filtrosArtista.value;
   const decadasSel = filtrosDecada.value;
 
-    const filtrados = videosOriginales.filter(video => {
+  const filtrados = videosOriginales.filter(video => {
     const coincideTexto = video.titulo.toLowerCase().includes(texto);
     const coincideGenero = !generoSel || video.genero === generoSel;
     const coincideArtista = !artistaSel || video.artista === artistaSel;
@@ -152,9 +153,9 @@ function aplicarFiltros() {
   });
 
   resultadosFiltrados = filtrados;
+  resultadosAleatorios = mezclarArray([...filtrados]); // Mezcla y guarda el orden
   indicePagina = 0;
-  mostrarVideos(resultadosFiltrados, true);
-
+  mostrarVideos(resultadosAleatorios, true);
 }
 
 function debounce(fn, delay) {
@@ -282,9 +283,8 @@ function mostrarVideos(videos, reemplazar = true) {
   const fin = inicio + tamanoPagina;
   const pagina = videos.slice(inicio, fin);
 
-  if (reemplazar) {
-    grid.innerHTML = '';
-  }
+  // Usar DocumentFragment para optimizar el renderizado
+  const fragment = document.createDocumentFragment();
 
   pagina.forEach(video => {
     const card = document.createElement('div');
@@ -293,6 +293,7 @@ function mostrarVideos(videos, reemplazar = true) {
     const img = document.createElement('img');
     img.src = video.imagen ? `file://${video.imagen}` : 'https://via.placeholder.com/300x170/000000/ffffff?text=Video';
     img.alt = video.titulo;
+    img.loading = 'lazy'; // Lazy loading para imágenes
 
     const titulo = document.createElement('h3');
     titulo.textContent = video.titulo.replace(/\.[^/.]+$/, "");
@@ -334,21 +335,25 @@ function mostrarVideos(videos, reemplazar = true) {
       mostrarMenuContextual(e.pageX, e.pageY, video);
     });
 
-    grid.appendChild(card);
+    fragment.appendChild(card);
   });
+
+  if (reemplazar) {
+    grid.innerHTML = '';
+  }
+  grid.appendChild(fragment);
 
   mostrarBotonCargarMas(videos.length);
 }
 
-
 function mostrarBotonCargarMas(totalVideos) {
   const hayMasPaginas = (indicePagina + 1) * tamanoPagina < totalVideos;
-  botonMas.style.display = 'inline-block';
+  botonMas.style.display = hayMasPaginas ? 'inline-block' : 'none';
 }
 
 botonMas.addEventListener('click', () => {
-  const aleatorios = mezclarArray([...resultadosFiltrados]).slice(0, tamanoPagina);
-  mostrarVideos(aleatorios, true);
+  indicePagina++;
+  mostrarVideos(resultadosAleatorios, true); // Refresca el grid con la siguiente página aleatoria
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
@@ -414,6 +419,7 @@ iconRegresarSidebar.addEventListener('click', () => {
   grid.style.display = 'grid';
   iconRegresarSidebar.style.display = 'none';
   iconBuscar.style.display = 'block';
+  mostrarBotonCargarMas(resultadosAleatorios.length);
 });
 
 miniClose.addEventListener('click', (e) => {
@@ -563,6 +569,7 @@ btnReproducirFila.addEventListener('click', () => {
   reproducirDesdeFila(indiceActualFila);
   vistaFila.classList.remove('visible');
   overlayBloqueo.style.display = 'none';
+  botonMas.style.display = 'none';
 });
 
 function reproducirDesdeFila(indice = 0) {
@@ -836,8 +843,9 @@ window.addEventListener('DOMContentLoaded', async () => {
       construirFiltros(videosOriginales);
       // Mezcla los videos antes de mostrarlos
       const videosMezclados = mezclarArray([...videosOriginales]);
-      resultadosFiltrados = videosMezclados; // <-- Agrega esta línea
-      mostrarVideos(videosMezclados);
+      resultadosFiltrados = videosMezclados;      // <-- Inicializa filtrados
+      resultadosAleatorios = videosMezclados;     // <-- Inicializa aleatorios
+      mostrarVideos(videosMezclados, true);
     }
   }
 });
