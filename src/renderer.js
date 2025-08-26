@@ -137,15 +137,25 @@ function poblarSelect(select, valores) {
   });
 }
 
+function quitarDiacriticos(str) {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+// Modifica aplicarFiltros para usar quitarDiacriticos
 function aplicarFiltros() {
   indicePagina = 0;
-  const texto = inputBusqueda.value.toLowerCase();
+  const texto = quitarDiacriticos(inputBusqueda.value.toLowerCase());
   const generoSel = filtrosGenero.value;
   const artistaSel = filtrosArtista.value;
   const decadasSel = filtrosDecada.value;
 
   const filtrados = videosOriginales.filter(video => {
-    const coincideTexto = video.titulo.toLowerCase().includes(texto);
+    const tituloNorm = quitarDiacriticos(video.titulo.toLowerCase());
+    const artistaNorm = quitarDiacriticos(video.artista?.toLowerCase() || '');
+    const coincideTexto =
+      tituloNorm.includes(texto) ||
+      artistaNorm.includes(texto);
+
     const coincideGenero = !generoSel || video.genero === generoSel;
     const coincideArtista = !artistaSel || video.artista === artistaSel;
     const coincideDecada = !decadasSel || video.decada === decadasSel;
@@ -153,9 +163,48 @@ function aplicarFiltros() {
   });
 
   resultadosFiltrados = filtrados;
-  resultadosAleatorios = mezclarArray([...filtrados]); // Mezcla y guarda el orden
+  resultadosAleatorios = mezclarArray([...filtrados]);
   indicePagina = 0;
   mostrarVideos(resultadosAleatorios, true);
+}
+
+// Modifica actualizarSugerencias para usar quitarDiacriticos
+function actualizarSugerencias() {
+  const texto = quitarDiacriticos(inputBusqueda.value.trim().toLowerCase());
+  divSugerencias.innerHTML = '';
+  sugerenciaSeleccionada = -1;
+
+  if (!texto) {
+    divSugerencias.classList.remove('visible');
+    return;
+  }
+
+  sugerencias = videosOriginales
+    .map(v => v.titulo)
+    .filter(titulo => quitarDiacriticos(titulo.toLowerCase()).includes(texto))
+    .slice(0, 7);
+
+  if (sugerencias.length === 0) {
+    divSugerencias.classList.remove('visible');
+    return;
+  }
+  posicionarSugerencias();
+
+  sugerencias.forEach((titulo, i) => {
+    const item = document.createElement('div');
+    item.textContent = titulo.replace(/\.[^/.]+$/, "");
+    item.classList.add('sugerencia-item');
+
+    item.addEventListener('click', () => {
+      inputBusqueda.value = titulo;
+      divSugerencias.classList.remove('visible');
+      aplicarFiltros();
+    });
+
+    divSugerencias.appendChild(item);
+  });
+
+  divSugerencias.classList.add('visible');
 }
 
 function debounce(fn, delay) {

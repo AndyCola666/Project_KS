@@ -4,6 +4,7 @@ const fs = require('fs');
 const mm = require('music-metadata');
 const Database = require('better-sqlite3');
 
+
 const dbDir = path.join(__dirname, 'src', 'data');
 if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
 
