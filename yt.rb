@@ -1,5 +1,5 @@
 def descargar_video(url)
-  carpeta = "D:/pruebakaraoke"
+  carpeta = "D:/pruebakaraoke/Artistas/Jose Jose"
 
   unless Dir.exist?(carpeta)
     puts "La carpeta '#{carpeta}' no existe."
@@ -7,18 +7,26 @@ def descargar_video(url)
   end
 
   salida = "#{carpeta}/%(title)s.%(ext)s"
+  formatos = %w[mp4 mkv mov avi]
+  descargado = false
 
-  #Descarga de formato y eliminación de archivos para fusión de video y audio
-  formato = "bestvideo[ext=mp4][height<=720]+bestaudio[ext=m4a]/best[ext=mp4][height<=720]/best"
+  formatos.each do |formato|
+    comando = "yt-dlp --no-playlist --no-check-certificate --no-warnings -f \"bestvideo[height<=720]+bestaudio/best[height<=720]\" --concurrent-fragments 8 --merge-output-format #{formato} -o \"#{salida}\" \"#{url}\""
+    puts "\nIntentando descargar en formato #{formato}..."
+    puts "Guardando en: #{carpeta}"
+    resultado = system(comando)
+    if resultado
+      puts "Descarga exitosa en formato #{formato}."
+      descargado = true
+      break
+    else
+      puts "No se pudo descargar en formato #{formato}, intentando el siguiente..."
+    end
+  end
 
-  comando = "yt-dlp --no-playlist -f \"#{formato}\" -o \"#{salida}\" \"#{url}\""
-
-  puts "\nDescargando video en .mp4 (máx 720p o menor si no hay)..."
-  puts "Guardando en: #{carpeta}"
-  system(comando)
-
+  puts "No se pudo descargar el video en ninguno de los formatos permitidos." unless descargado
 end
-#Consola 
+
 print "Introduce la URL del video de YouTube: "
 url = gets.chomp
 
