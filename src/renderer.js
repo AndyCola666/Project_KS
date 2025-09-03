@@ -533,11 +533,6 @@ function mostrarVistaFila() {
     li.draggable = true;
     li.dataset.index = i;
 
-    li.onclick = () => {
-      vistaFila.style.display = 'none';
-      indiceActualFila = i;
-      reproducirDesdeFila(i);
-    };
 
     li.addEventListener('contextmenu', (e) => {
       e.preventDefault();
